@@ -1,0 +1,2201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Free PC Games — ElGrande</title>
+  <meta name="description" content="Download free PC games from ElGrande. Curated library of the best free-to-play games on Steam, Epic Games, and more.">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
+  <style>
+    /* ===== PC GAMES PAGE STYLES ===== */
+    .pcg-hero {
+      position: relative;
+      padding: 100px 4% 60px;
+      min-height: 480px;
+      display: flex;
+      align-items: flex-end;
+      overflow: hidden;
+    }
+    .pcg-hero-bg {
+      position: absolute;
+      inset: 0;
+      background: url('https://cdn.cloudflare.steamstatic.com/steam/apps/1172470/library_hero.jpg') center/cover no-repeat;
+      filter: brightness(0.4);
+    }
+    .pcg-hero-bg::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, #141414 0%, rgba(20,20,20,0.6) 40%, rgba(20,20,20,0.2) 100%);
+    }
+    .pcg-hero-content {
+      position: relative;
+      z-index: 2;
+      max-width: 650px;
+    }
+    .pcg-hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(0,102,255,0.9);
+      padding: 4px 12px;
+      border-radius: 3px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 14px;
+    }
+    .pcg-hero h1 {
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 900;
+      margin-bottom: 12px;
+      text-shadow: 0 2px 20px rgba(0,0,0,0.6);
+    }
+    .pcg-hero p {
+      color: #ccc;
+      font-size: 1rem;
+      line-height: 1.6;
+      margin-bottom: 20px;
+      max-width: 500px;
+    }
+    .pcg-hero-btns {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .pcg-hero-btns a {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 24px;
+      border-radius: 4px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .btn-download-hero {
+      background: #0066ff;
+      color: #fff;
+    }
+    .btn-download-hero:hover {
+      background: #0052cc;
+      transform: scale(1.03);
+    }
+    .btn-info-hero {
+      background: rgba(255,255,255,0.2);
+      color: #fff;
+      backdrop-filter: blur(4px);
+    }
+    .btn-info-hero:hover {
+      background: rgba(255,255,255,0.3);
+    }
+
+    /* ===== TOOLBAR ===== */
+    .pcg-toolbar {
+      position: sticky;
+      top: 68px;
+      background: rgba(20,20,20,0.97);
+      backdrop-filter: blur(12px);
+      z-index: 100;
+      padding: 14px 4%;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .pcg-toolbar-inner {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .pcg-search {
+      flex: 1;
+      min-width: 220px;
+      max-width: 400px;
+      position: relative;
+    }
+    .pcg-search input {
+      width: 100%;
+      padding: 10px 14px 10px 38px;
+      background: #333;
+      border: 1px solid #444;
+      border-radius: 4px;
+      color: #fff;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .pcg-search input:focus {
+      border-color: #0066ff;
+    }
+    .pcg-search input::placeholder { color: #888; }
+    .pcg-search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #888;
+    }
+    .pcg-sort {
+      background: #333;
+      border: 1px solid #444;
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      outline: none;
+      cursor: pointer;
+    }
+    .pcg-count {
+      color: #888;
+      font-size: 0.85rem;
+      white-space: nowrap;
+    }
+
+    /* ===== FILTER PILLS ===== */
+    .pcg-filters {
+      padding: 0 4%;
+      margin: 16px 0 8px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .pcg-pill {
+      padding: 7px 16px;
+      border-radius: 20px;
+      background: #2a2a2a;
+      border: 1px solid #3a3a3a;
+      color: #ccc;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .pcg-pill:hover {
+      background: #3a3a3a;
+      color: #fff;
+    }
+    .pcg-pill.active {
+      background: #0066ff;
+      border-color: #0066ff;
+      color: #fff;
+      font-weight: 600;
+    }
+
+    /* ===== GAME GRID ===== */
+    .pcg-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+      padding: 20px 4% 60px;
+    }
+
+    /* ===== GAME CARD ===== */
+    .pcg-card {
+      background: #1e1e1e;
+      border-radius: 8px;
+      overflow: hidden;
+      transition: transform 0.25s, box-shadow 0.25s;
+      cursor: pointer;
+      position: relative;
+    }
+    .pcg-card:hover {
+      transform: translateY(-6px) scale(1.02);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+      z-index: 5;
+    }
+    .pcg-card-img-wrap {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 460/215;
+      overflow: hidden;
+      background: #111;
+    }
+    .pcg-card-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s;
+    }
+    .pcg-card:hover .pcg-card-img-wrap img {
+      transform: scale(1.05);
+    }
+    .pcg-badge-price {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      padding: 3px 10px;
+      border-radius: 3px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .pcg-badge-free {
+      background: #2ecc40;
+      color: #000;
+    }
+    .pcg-badge-paid {
+      background: #f5a623;
+      color: #000;
+    }
+    .pcg-badge-players {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      padding: 3px 8px;
+      border-radius: 3px;
+      font-size: 0.68rem;
+      font-weight: 600;
+      background: rgba(0,0,0,0.75);
+      color: #2ecc40;
+      backdrop-filter: blur(4px);
+    }
+    .pcg-card-body {
+      padding: 14px 16px 16px;
+    }
+    .pcg-card-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .pcg-card-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    .pcg-genre-badge {
+      padding: 2px 8px;
+      border-radius: 3px;
+      font-size: 0.68rem;
+      font-weight: 600;
+      color: #fff;
+    }
+    .pcg-platform {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .pcg-platform-icon {
+      width: 16px;
+      height: 16px;
+      opacity: 0.6;
+    }
+    .pcg-card-size {
+      color: #888;
+      font-size: 0.75rem;
+    }
+    .pcg-card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .pcg-rating {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      color: #f5a623;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+    .pcg-btn-dl {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 16px;
+      background: #0066ff;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .pcg-btn-dl:hover {
+      background: #0052cc;
+      transform: scale(1.05);
+    }
+
+    /* Genre colors */
+    .genre-br { background: #e74c3c; }
+    .genre-survival { background: #27ae60; }
+    .genre-fps { background: #e67e22; }
+    .genre-mmorpg { background: #8e44ad; }
+    .genre-moba { background: #2980b9; }
+    .genre-racing { background: #16a085; }
+    .genre-horror { background: #c0392b; }
+    .genre-action { background: #d35400; }
+    .genre-adventure { background: #2c3e50; }
+    .genre-rpg { background: #9b59b6; }
+    .genre-sandbox { background: #f39c12; }
+    .genre-strategy { background: #1abc9c; }
+    .genre-sports { background: #3498db; }
+    .genre-simulation { background: #34495e; }
+    .genre-card { background: #7f8c8d; }
+
+    /* ===== NO RESULTS ===== */
+    .pcg-no-results {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 80px 20px;
+      color: #666;
+    }
+    .pcg-no-results h3 {
+      font-size: 1.4rem;
+      margin-bottom: 8px;
+      color: #888;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+      .pcg-grid {
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 14px;
+        padding: 14px 3% 40px;
+      }
+      .pcg-hero { min-height: 360px; padding-top: 80px; }
+      .pcg-toolbar-inner { gap: 10px; }
+      .pcg-search { max-width: 100%; }
+      .pcg-filters { padding: 0 3%; }
+    }
+    @media (max-width: 480px) {
+      .pcg-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-gradient" id="navbar">
+  <div class="navbar-left">
+    <a href="index.html" class="logo">ElGrande</a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="tv.html">TV Shows</a></li>
+      <li><a href="movies.html">Movies</a></li>
+      <li><a href="games.html">Games</a></li>
+      <li><a href="pc-games.html" class="active">PC Games</a></li>
+      <li><a href="movies.html?genre=28">New &amp; Popular</a></li>
+    </ul>
+    <span class="tagline">Stream Everything. Free.</span>
+  </div>
+  <div class="navbar-right">
+    <button class="nav-icon-btn" title="Notifications">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"/></svg>
+      <span class="notification-dot"></span>
+    </button>
+    <div class="profile-avatar" title="ElGrande">G</div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="pcg-hero">
+  <div class="pcg-hero-bg"></div>
+  <div class="pcg-hero-content">
+    <div class="pcg-hero-badge">Featured Free Game</div>
+    <h1>Apex Legends</h1>
+    <p>Drop in and dominate in this award-winning free-to-play battle royale shooter. Master legendary characters, strategic squad play, and innovative combat in the Titanfall universe.</p>
+    <div class="pcg-hero-btns">
+      <a href="https://store.steampowered.com/app/1172470/Apex_Legends/" target="_blank" class="btn-download-hero">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+        Download Free on Steam
+      </a>
+      <a href="#apex" class="btn-info-hero">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><line x1="12" y1="16" x2="12" y2="12" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="8" r="1"/></svg>
+        More Info
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- TOOLBAR -->
+<div class="pcg-toolbar">
+  <div class="pcg-toolbar-inner">
+    <div class="pcg-search">
+      <span class="pcg-search-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
+      </span>
+      <input type="text" id="gameSearch" placeholder="Search games..." autocomplete="off">
+    </div>
+    <select class="pcg-sort" id="gameSort">
+      <option value="popular">Most Popular</option>
+      <option value="name">A — Z</option>
+      <option value="name-desc">Z — A</option>
+      <option value="rating">Highest Rated</option>
+      <option value="free">Free First</option>
+    </select>
+    <span class="pcg-count" id="gameCount"></span>
+  </div>
+</div>
+
+<!-- FILTER PILLS -->
+<div class="pcg-filters" id="genreFilters">
+  <button class="pcg-pill active" data-genre="all">All</button>
+  <button class="pcg-pill" data-genre="Battle Royale">Battle Royale</button>
+  <button class="pcg-pill" data-genre="Survival">Survival</button>
+  <button class="pcg-pill" data-genre="FPS">FPS</button>
+  <button class="pcg-pill" data-genre="MMORPG">MMORPG</button>
+  <button class="pcg-pill" data-genre="MOBA">MOBA</button>
+  <button class="pcg-pill" data-genre="Racing">Racing</button>
+  <button class="pcg-pill" data-genre="Horror">Horror</button>
+  <button class="pcg-pill" data-genre="Action">Action</button>
+  <button class="pcg-pill" data-genre="Adventure">Adventure</button>
+  <button class="pcg-pill" data-genre="RPG">RPG</button>
+  <button class="pcg-pill" data-genre="Sandbox">Sandbox</button>
+  <button class="pcg-pill" data-genre="Strategy">Strategy</button>
+  <button class="pcg-pill" data-genre="Sports">Sports</button>
+  <button class="pcg-pill" data-genre="Simulation">Simulation</button>
+  <button class="pcg-pill" data-genre="Card">Card/Strategy</button>
+</div>
+
+<!-- GAME GRID -->
+<div class="pcg-grid" id="gameGrid"></div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-social">
+    <a href="#" title="Facebook">&#xf09a;</a>
+    <a href="#" title="Instagram">&#xf16d;</a>
+    <a href="#" title="Twitter">&#xf099;</a>
+    <a href="#" title="YouTube">&#xf167;</a>
+  </div>
+  <div class="footer-links">
+    <a href="#">Audio Description</a>
+    <a href="#">Help Centre</a>
+    <a href="#">Gift Cards</a>
+    <a href="#">Media Centre</a>
+    <a href="#">Investor Relations</a>
+    <a href="#">Jobs</a>
+    <a href="#">Terms of Use</a>
+    <a href="#">Privacy</a>
+    <a href="#">Legal Notices</a>
+    <a href="#">Cookie Preferences</a>
+    <a href="#">Corporate Information</a>
+    <a href="#">Contact Us</a>
+  </div>
+  <button class="footer-service-code">Service Code</button>
+  <div class="footer-bottom">
+    <p>&copy; 2025 ElGrande. Game data curated by ElGrande.</p>
+  </div>
+</footer>
+
+<script>
+// ===== MASSIVE GAME DATABASE =====
+const GAMES = [
+  // ========== BATTLE ROYALE ==========
+  {
+    title: "Fortnite",
+    genre: "Battle Royale",
+    steamId: null,
+    img: "https://cdn2.unrealengine.com/fortnite-chapter-5-season-1-702x336-c5c39b70f0ce.jpg",
+    link: "https://store.epicgames.com/en-US/p/fortnite",
+    platform: ["Epic"],
+    size: "26 GB",
+    free: true,
+    rating: 4.2,
+    players: "350M+",
+    desc: "Build, battle, and create in this legendary battle royale phenomenon."
+  },
+  {
+    title: "Apex Legends",
+    genre: "Battle Royale",
+    steamId: 1172470,
+    img: null,
+    link: "https://store.steampowered.com/app/1172470/Apex_Legends/",
+    platform: ["Steam", "EA"],
+    size: "56 GB",
+    free: true,
+    rating: 4.4,
+    players: "100M+",
+    desc: "Squad-based battle royale with unique character abilities."
+  },
+  {
+    title: "Call of Duty: Warzone",
+    genre: "Battle Royale",
+    steamId: 1962663,
+    img: null,
+    link: "https://store.steampowered.com/app/1962663/Call_of_Duty_Warzone/",
+    platform: ["Steam", "Battle.net"],
+    size: "115 GB",
+    free: true,
+    rating: 4.0,
+    players: "50M+",
+    desc: "Massive free-to-play battle royale from the Call of Duty franchise."
+  },
+  {
+    title: "PUBG: BATTLEGROUNDS",
+    genre: "Battle Royale",
+    steamId: 578080,
+    img: null,
+    link: "https://store.steampowered.com/app/578080/PUBG_BATTLEGROUNDS/",
+    platform: ["Steam"],
+    size: "40 GB",
+    free: true,
+    rating: 3.8,
+    players: "75M+",
+    desc: "The original battle royale that started it all. Now free to play."
+  },
+  {
+    title: "Naraka: Bladepoint",
+    genre: "Battle Royale",
+    steamId: 1203220,
+    img: null,
+    link: "https://store.steampowered.com/app/1203220/NARAKA_BLADEPOINT/",
+    platform: ["Steam"],
+    size: "35 GB",
+    free: true,
+    rating: 4.1,
+    players: "10M+",
+    desc: "Melee-focused battle royale with martial arts combat."
+  },
+  {
+    title: "The Finals",
+    genre: "Battle Royale",
+    steamId: 2073850,
+    img: null,
+    link: "https://store.steampowered.com/app/2073850/THE_FINALS/",
+    platform: ["Steam"],
+    size: "20 GB",
+    free: true,
+    rating: 4.3,
+    players: "10M+",
+    desc: "Destructible environments meet fast-paced team combat."
+  },
+  {
+    title: "Fall Guys",
+    genre: "Battle Royale",
+    steamId: null,
+    img: "https://cdn2.unrealengine.com/egs-fallguys-702x336-0c6dbf9b5eb5.jpg",
+    link: "https://store.epicgames.com/en-US/p/fall-guys",
+    platform: ["Epic"],
+    size: "8 GB",
+    free: true,
+    rating: 4.3,
+    players: "50M+",
+    desc: "Stumble through chaotic obstacle courses in this party royale hit."
+  },
+  {
+    title: "Super People 2",
+    genre: "Battle Royale",
+    steamId: 1190340,
+    img: null,
+    link: "https://store.steampowered.com/app/1190340/SUPER_PEOPLE_2/",
+    platform: ["Steam"],
+    size: "25 GB",
+    free: true,
+    rating: 3.5,
+    players: "1M+",
+    desc: "Superpowered battle royale with class-based abilities."
+  },
+
+  // ========== SURVIVAL / SANDBOX ==========
+  {
+    title: "ARK: Survival Evolved",
+    genre: "Survival",
+    steamId: 346110,
+    img: null,
+    link: "https://store.steampowered.com/app/346110/ARK_Survival_Evolved/",
+    platform: ["Steam"],
+    size: "60 GB",
+    free: true,
+    rating: 4.0,
+    players: "30M+",
+    desc: "Survive and tame dinosaurs in a massive prehistoric world."
+  },
+  {
+    title: "Unturned",
+    genre: "Survival",
+    steamId: 304930,
+    img: null,
+    link: "https://store.steampowered.com/app/304930/Unturned/",
+    platform: ["Steam"],
+    size: "4 GB",
+    free: true,
+    rating: 4.2,
+    players: "25M+",
+    desc: "Blocky zombie survival with crafting, vehicles, and multiplayer."
+  },
+  {
+    title: "No More Room in Hell",
+    genre: "Survival",
+    steamId: 224260,
+    img: null,
+    link: "https://store.steampowered.com/app/224260/No_More_Room_in_Hell/",
+    platform: ["Steam"],
+    size: "5 GB",
+    free: true,
+    rating: 4.1,
+    players: "5M+",
+    desc: "Realistic cooperative zombie survival with limited supplies."
+  },
+  {
+    title: "SCP: Secret Laboratory",
+    genre: "Survival",
+    steamId: 700330,
+    img: null,
+    link: "https://store.steampowered.com/app/700330/SCP_Secret_Laboratory/",
+    platform: ["Steam"],
+    size: "10 GB",
+    free: true,
+    rating: 4.5,
+    players: "15M+",
+    desc: "Survive anomalous creatures in a secret research facility."
+  },
+  {
+    title: "Rust",
+    genre: "Survival",
+    steamId: 252490,
+    img: null,
+    link: "https://store.steampowered.com/app/252490/Rust/",
+    platform: ["Steam"],
+    size: "25 GB",
+    free: false,
+    price: "$39.99",
+    rating: 4.5,
+    players: "15M+",
+    desc: "Brutal multiplayer survival. Gather, build, fight, survive."
+  },
+
+  // ========== FPS / SHOOTER ==========
+  {
+    title: "Counter-Strike 2",
+    genre: "FPS",
+    steamId: 730,
+    img: null,
+    link: "https://store.steampowered.com/app/730/CounterStrike_2/",
+    platform: ["Steam"],
+    size: "30 GB",
+    free: true,
+    rating: 4.6,
+    players: "1.5M+ concurrent",
+    desc: "The world's greatest competitive FPS, reimagined in Source 2."
+  },
+  {
+    title: "Valorant",
+    genre: "FPS",
+    steamId: null,
+    img: "https://cmsassets.rgpub.io/sanity/images/dsfx7636/game_data/4cb0e16fdf82b26a01af0b1c5760b8a34c362a08-616x353.png",
+    link: "https://playvalorant.com/en-us/",
+    platform: ["Riot"],
+    size: "23 GB",
+    free: true,
+    rating: 4.5,
+    players: "30M+",
+    desc: "Tactical 5v5 shooter with unique agent abilities by Riot Games."
+  },
+  {
+    title: "Team Fortress 2",
+    genre: "FPS",
+    steamId: 440,
+    img: null,
+    link: "https://store.steampowered.com/app/440/Team_Fortress_2/",
+    platform: ["Steam"],
+    size: "15 GB",
+    free: true,
+    rating: 4.7,
+    players: "100K+ concurrent",
+    desc: "Iconic class-based shooter with timeless charm and humor."
+  },
+  {
+    title: "Destiny 2",
+    genre: "FPS",
+    steamId: 1085660,
+    img: null,
+    link: "https://store.steampowered.com/app/1085660/Destiny_2/",
+    platform: ["Steam"],
+    size: "105 GB",
+    free: true,
+    rating: 4.1,
+    players: "40M+",
+    desc: "Sci-fi looter shooter with raids, dungeons, and PvP."
+  },
+  {
+    title: "Overwatch 2",
+    genre: "FPS",
+    steamId: 2357570,
+    img: null,
+    link: "https://store.steampowered.com/app/2357570/Overwatch_2/",
+    platform: ["Steam", "Battle.net"],
+    size: "50 GB",
+    free: true,
+    rating: 3.9,
+    players: "35M+",
+    desc: "Team-based hero shooter with dynamic 5v5 combat."
+  },
+  {
+    title: "Enlisted",
+    genre: "FPS",
+    steamId: 1167160,
+    img: null,
+    link: "https://store.steampowered.com/app/1167160/Enlisted/",
+    platform: ["Steam"],
+    size: "40 GB",
+    free: true,
+    rating: 3.8,
+    players: "5M+",
+    desc: "WWII squad-based shooter with massive multiplayer battles."
+  },
+  {
+    title: "War Thunder",
+    genre: "FPS",
+    steamId: 236390,
+    img: null,
+    link: "https://store.steampowered.com/app/236390/War_Thunder/",
+    platform: ["Steam"],
+    size: "55 GB",
+    free: true,
+    rating: 4.0,
+    players: "70M+",
+    desc: "Cross-era combined arms warfare with tanks, planes, and ships."
+  },
+  {
+    title: "World of Tanks",
+    genre: "FPS",
+    steamId: null,
+    img: "https://worldoftanks.com/dcont/fb/image/wot_logo_share.jpg",
+    link: "https://worldoftanks.com/",
+    platform: ["Official"],
+    size: "60 GB",
+    free: true,
+    rating: 4.0,
+    players: "160M+",
+    desc: "Strategic armored warfare with 600+ historically accurate tanks."
+  },
+  {
+    title: "World of Warships",
+    genre: "FPS",
+    steamId: 552990,
+    img: null,
+    link: "https://store.steampowered.com/app/552990/World_of_Warships/",
+    platform: ["Steam"],
+    size: "55 GB",
+    free: true,
+    rating: 3.7,
+    players: "40M+",
+    desc: "Naval combat with legendary warships from WWII."
+  },
+  {
+    title: "Paladins",
+    genre: "FPS",
+    steamId: 444090,
+    img: null,
+    link: "https://store.steampowered.com/app/444090/Paladins/",
+    platform: ["Steam"],
+    size: "20 GB",
+    free: true,
+    rating: 4.0,
+    players: "25M+",
+    desc: "Fantasy team-based shooter with card-based loadout customization."
+  },
+  {
+    title: "Splitgate",
+    genre: "FPS",
+    steamId: 677620,
+    img: null,
+    link: "https://store.steampowered.com/app/677620/Splitgate/",
+    platform: ["Steam"],
+    size: "15 GB",
+    free: true,
+    rating: 4.3,
+    players: "10M+",
+    desc: "Portal-based arena FPS combining Halo and Portal mechanics."
+  },
+  {
+    title: "Ironsight",
+    genre: "FPS",
+    steamId: 1762480,
+    img: null,
+    link: "https://store.steampowered.com/app/1762480/Ironsight/",
+    platform: ["Steam"],
+    size: "12 GB",
+    free: true,
+    rating: 3.6,
+    players: "2M+",
+    desc: "Fast-paced futuristic military FPS with mech warfare."
+  },
+
+  // ========== MMORPG ==========
+  {
+    title: "Lost Ark",
+    genre: "MMORPG",
+    steamId: 1599340,
+    img: null,
+    link: "https://store.steampowered.com/app/1599340/Lost_Ark/",
+    platform: ["Steam"],
+    size: "75 GB",
+    free: true,
+    rating: 4.0,
+    players: "20M+",
+    desc: "Massive action MMORPG with cinematic combat and raids."
+  },
+  {
+    title: "Guild Wars 2",
+    genre: "MMORPG",
+    steamId: 1284210,
+    img: null,
+    link: "https://store.steampowered.com/app/1284210/Guild_Wars_2/",
+    platform: ["Steam"],
+    size: "55 GB",
+    free: true,
+    rating: 4.4,
+    players: "16M+",
+    desc: "Dynamic MMORPG with living world events and no subscription fee."
+  },
+  {
+    title: "Path of Exile",
+    genre: "MMORPG",
+    steamId: 238960,
+    img: null,
+    link: "https://store.steampowered.com/app/238960/Path_of_Exile/",
+    platform: ["Steam"],
+    size: "40 GB",
+    free: true,
+    rating: 4.7,
+    players: "30M+",
+    desc: "Dark and deep action RPG with unlimited character customization."
+  },
+  {
+    title: "Path of Exile 2",
+    genre: "MMORPG",
+    steamId: 2694490,
+    img: null,
+    link: "https://store.steampowered.com/app/2694490/Path_of_Exile_2/",
+    platform: ["Steam"],
+    size: "50 GB",
+    free: true,
+    rating: 4.5,
+    players: "5M+",
+    desc: "Next-gen action RPG with 6 acts, 12 classes, and evolved combat."
+  },
+  {
+    title: "Genshin Impact",
+    genre: "MMORPG",
+    steamId: null,
+    img: "https://cdn2.unrealengine.com/egs-genshinimpact-702x336-2e27df1a10e3.jpg",
+    link: "https://genshin.hoyoverse.com/en/download",
+    platform: ["Epic", "Official"],
+    size: "65 GB",
+    free: true,
+    rating: 4.5,
+    players: "65M+",
+    desc: "Open-world action RPG with stunning anime visuals and elemental combat."
+  },
+  {
+    title: "Tower of Fantasy",
+    genre: "MMORPG",
+    steamId: 2064650,
+    img: null,
+    link: "https://store.steampowered.com/app/2064650/Tower_of_Fantasy/",
+    platform: ["Steam"],
+    size: "35 GB",
+    free: true,
+    rating: 3.7,
+    players: "10M+",
+    desc: "Shared open-world RPG with anime-style combat and exploration."
+  },
+  {
+    title: "Star Wars: The Old Republic",
+    genre: "MMORPG",
+    steamId: 1286830,
+    img: null,
+    link: "https://store.steampowered.com/app/1286830/STAR_WARS_The_Old_Republic/",
+    platform: ["Steam"],
+    size: "50 GB",
+    free: true,
+    rating: 4.2,
+    players: "10M+",
+    desc: "BioWare's story-driven Star Wars MMORPG with lightsaber combat."
+  },
+  {
+    title: "RuneScape",
+    genre: "MMORPG",
+    steamId: 1343400,
+    img: null,
+    link: "https://store.steampowered.com/app/1343400/RuneScape/",
+    platform: ["Steam", "Official"],
+    size: "8 GB",
+    free: true,
+    rating: 4.0,
+    players: "300M+",
+    desc: "The legendary fantasy MMORPG with 20+ years of content."
+  },
+  {
+    title: "Old School RuneScape",
+    genre: "MMORPG",
+    steamId: 2760020,
+    img: null,
+    link: "https://store.steampowered.com/app/2760020/Old_School_RuneScape/",
+    platform: ["Steam"],
+    size: "3 GB",
+    free: true,
+    rating: 4.6,
+    players: "50M+",
+    desc: "Classic RuneScape experience with community-driven updates."
+  },
+  {
+    title: "MapleStory",
+    genre: "MMORPG",
+    steamId: 216150,
+    img: null,
+    link: "https://store.steampowered.com/app/216150/MapleStory/",
+    platform: ["Steam"],
+    size: "12 GB",
+    free: true,
+    rating: 3.9,
+    players: "180M+",
+    desc: "Side-scrolling MMORPG with charming 2D art and deep progression."
+  },
+  {
+    title: "Black Desert Online",
+    genre: "MMORPG",
+    steamId: 582660,
+    img: null,
+    link: "https://store.steampowered.com/app/582660/Black_Desert_Online/",
+    platform: ["Steam"],
+    size: "70 GB",
+    free: true,
+    rating: 4.1,
+    players: "40M+",
+    desc: "Stunning action combat MMORPG with deep life skills and PvP."
+  },
+  {
+    title: "Albion Online",
+    genre: "MMORPG",
+    steamId: 761890,
+    img: null,
+    link: "https://store.steampowered.com/app/761890/Albion_Online/",
+    platform: ["Steam"],
+    size: "8 GB",
+    free: true,
+    rating: 4.2,
+    players: "10M+",
+    desc: "Sandbox MMORPG with full-loot PvP and player-driven economy."
+  },
+  {
+    title: "Warframe",
+    genre: "MMORPG",
+    steamId: 230410,
+    img: null,
+    link: "https://store.steampowered.com/app/230410/Warframe/",
+    platform: ["Steam"],
+    size: "50 GB",
+    free: true,
+    rating: 4.6,
+    players: "70M+",
+    desc: "Space ninjas in this fast-paced co-op action RPG."
+  },
+  {
+    title: "Phantasy Star Online 2: New Genesis",
+    genre: "MMORPG",
+    steamId: 1056640,
+    img: null,
+    link: "https://store.steampowered.com/app/1056640/Phantasy_Star_Online_2_New_Genesis/",
+    platform: ["Steam"],
+    size: "80 GB",
+    free: true,
+    rating: 3.6,
+    players: "5M+",
+    desc: "Sci-fi action MMORPG with stylish combat and open-field exploration."
+  },
+  {
+    title: "Throne and Liberty",
+    genre: "MMORPG",
+    steamId: 2429640,
+    img: null,
+    link: "https://store.steampowered.com/app/2429640/Throne_and_Liberty/",
+    platform: ["Steam"],
+    size: "40 GB",
+    free: true,
+    rating: 3.8,
+    players: "5M+",
+    desc: "Dynamic MMORPG with morphing weapons and massive castle sieges."
+  },
+
+  // ========== MOBA ==========
+  {
+    title: "League of Legends",
+    genre: "MOBA",
+    steamId: null,
+    img: "https://cmsassets.rgpub.io/sanity/images/dsfx7636/game_data/da5c70a370f5e0b0476fd36a19375db9a2703fdc-616x353.png",
+    link: "https://www.leagueoflegends.com/",
+    platform: ["Riot"],
+    size: "22 GB",
+    free: true,
+    rating: 4.3,
+    players: "150M+",
+    desc: "The world's most popular MOBA. 160+ champions, infinite skill ceiling."
+  },
+  {
+    title: "Dota 2",
+    genre: "MOBA",
+    steamId: 570,
+    img: null,
+    link: "https://store.steampowered.com/app/570/Dota_2/",
+    platform: ["Steam"],
+    size: "35 GB",
+    free: true,
+    rating: 4.5,
+    players: "800K+ concurrent",
+    desc: "Deeply strategic MOBA with 120+ heroes and legendary esports."
+  },
+  {
+    title: "Smite 2",
+    genre: "MOBA",
+    steamId: 2437860,
+    img: null,
+    link: "https://store.steampowered.com/app/2437860/SMITE_2/",
+    platform: ["Steam"],
+    size: "30 GB",
+    free: true,
+    rating: 3.8,
+    players: "5M+",
+    desc: "Third-person mythological MOBA rebuilt in Unreal Engine 5."
+  },
+  {
+    title: "Heroes of the Storm",
+    genre: "MOBA",
+    steamId: null,
+    img: "https://blz-contentstack-images.akamaized.net/v3/assets/blt0e00eb71333df64e/blt3bdda0fe1bd0f3e1/heroes-of-the-storm.webp",
+    link: "https://heroesofthestorm.blizzard.com/",
+    platform: ["Battle.net"],
+    size: "20 GB",
+    free: true,
+    rating: 4.1,
+    players: "10M+",
+    desc: "Team brawler featuring iconic Blizzard characters."
+  },
+  {
+    title: "Pokemon Unite",
+    genre: "MOBA",
+    steamId: null,
+    img: "https://assets.pokemon.com/static2/_ui/img/og-default-image.jpeg",
+    link: "https://unite.pokemon.com/en-us/",
+    platform: ["Official"],
+    size: "3 GB",
+    free: true,
+    rating: 3.9,
+    players: "25M+",
+    desc: "Strategic Pokemon team battles in this accessible MOBA."
+  },
+
+  // ========== RACING ==========
+  {
+    title: "Asphalt Legends Unite",
+    genre: "Racing",
+    steamId: 1626360,
+    img: null,
+    link: "https://store.steampowered.com/app/1626360/Asphalt_Legends_Unite/",
+    platform: ["Steam"],
+    size: "15 GB",
+    free: true,
+    rating: 3.8,
+    players: "10M+",
+    desc: "Arcade racing with licensed supercars and multiplayer action."
+  },
+  {
+    title: "KartRider: Drift",
+    genre: "Racing",
+    steamId: 1825580,
+    img: null,
+    link: "https://store.steampowered.com/app/1825580/KartRider_Drift/",
+    platform: ["Steam"],
+    size: "10 GB",
+    free: true,
+    rating: 3.7,
+    players: "5M+",
+    desc: "Fun kart racing with drifting mechanics and character customization."
+  },
+  {
+    title: "TrackMania",
+    genre: "Racing",
+    steamId: null,
+    img: "https://cdn2.unrealengine.com/egs-trackmania-702x336-2a95c96d31f7.jpg",
+    link: "https://store.epicgames.com/en-US/p/trackmania",
+    platform: ["Epic", "Ubisoft"],
+    size: "6 GB",
+    free: true,
+    rating: 4.4,
+    players: "10M+",
+    desc: "Ultra-precise racing with community tracks and insane physics."
+  },
+  {
+    title: "Rocket League",
+    genre: "Racing",
+    steamId: null,
+    img: "https://cdn2.unrealengine.com/egs-rocketleague-702x336-875e98ef1cfe.jpg",
+    link: "https://store.epicgames.com/en-US/p/rocket-league",
+    platform: ["Epic"],
+    size: "20 GB",
+    free: true,
+    rating: 4.6,
+    players: "90M+",
+    desc: "Rocket-powered cars meet soccer in this global phenomenon."
+  },
+
+  // ========== CARD / STRATEGY ==========
+  {
+    title: "Hearthstone",
+    genre: "Card",
+    steamId: null,
+    img: "https://blz-contentstack-images.akamaized.net/v3/assets/blt0e00eb71333df64e/blt8c1d76beaee24e1f/hearthstone.webp",
+    link: "https://hearthstone.blizzard.com/",
+    platform: ["Battle.net"],
+    size: "4 GB",
+    free: true,
+    rating: 4.2,
+    players: "30M+",
+    desc: "Blizzard's iconic card game with Warcraft characters."
+  },
+  {
+    title: "Magic: The Gathering Arena",
+    genre: "Card",
+    steamId: 2141910,
+    img: null,
+    link: "https://store.steampowered.com/app/2141910/Magic_The_Gathering_Arena/",
+    platform: ["Steam"],
+    size: "5 GB",
+    free: true,
+    rating: 4.0,
+    players: "10M+",
+    desc: "The legendary TCG brought to life digitally."
+  },
+  {
+    title: "Yu-Gi-Oh! Master Duel",
+    genre: "Card",
+    steamId: 1449850,
+    img: null,
+    link: "https://store.steampowered.com/app/1449850/YuGiOh_Master_Duel/",
+    platform: ["Steam"],
+    size: "6 GB",
+    free: true,
+    rating: 4.1,
+    players: "40M+",
+    desc: "The definitive Yu-Gi-Oh! digital card game with 10,000+ cards."
+  },
+  {
+    title: "Legends of Runeterra",
+    genre: "Card",
+    steamId: null,
+    img: "https://cmsassets.rgpub.io/sanity/images/dsfx7636/game_data/6f4d3a11d97cf5b4e6a7c1bbeb48d61f6c76aeab-616x353.png",
+    link: "https://playruneterra.com/en-us/",
+    platform: ["Riot"],
+    size: "3 GB",
+    free: true,
+    rating: 4.3,
+    players: "5M+",
+    desc: "Strategic card game set in the League of Legends universe."
+  },
+  {
+    title: "Marvel Snap",
+    genre: "Card",
+    steamId: 1997040,
+    img: null,
+    link: "https://store.steampowered.com/app/1997040/MARVEL_SNAP/",
+    platform: ["Steam"],
+    size: "2 GB",
+    free: true,
+    rating: 4.4,
+    players: "20M+",
+    desc: "Fast 3-minute card battles with Marvel's greatest heroes."
+  },
+  {
+    title: "Teamfight Tactics",
+    genre: "Card",
+    steamId: null,
+    img: "https://cmsassets.rgpub.io/sanity/images/dsfx7636/game_data/76b08f4ac52ef46bc4ceef2e33a5a4d1b12c82c9-616x353.png",
+    link: "https://teamfighttactics.leagueoflegends.com/",
+    platform: ["Riot"],
+    size: "22 GB",
+    free: true,
+    rating: 4.2,
+    players: "30M+",
+    desc: "Auto-battler strategy from Riot Games. Included with LoL client."
+  },
+
+  // ========== HORROR ==========
+  {
+    title: "Phasmophobia",
+    genre: "Horror",
+    steamId: 739630,
+    img: null,
+    link: "https://store.steampowered.com/app/739630/Phasmophobia/",
+    platform: ["Steam"],
+    size: "18 GB",
+    free: false,
+    price: "$13.99",
+    rating: 4.7,
+    players: "10M+",
+    desc: "Cooperative ghost hunting with VR support and terrifying encounters."
+  },
+  {
+    title: "Devour",
+    genre: "Horror",
+    steamId: 1274570,
+    img: null,
+    link: "https://store.steampowered.com/app/1274570/DEVOUR/",
+    platform: ["Steam"],
+    size: "5 GB",
+    free: false,
+    price: "$4.99",
+    rating: 4.5,
+    players: "5M+",
+    desc: "Co-op horror where you stop possessed cultists before they consume you."
+  },
+  {
+    title: "Deceit",
+    genre: "Horror",
+    steamId: 466240,
+    img: null,
+    link: "https://store.steampowered.com/app/466240/Deceit/",
+    platform: ["Steam"],
+    size: "8 GB",
+    free: true,
+    rating: 3.6,
+    players: "5M+",
+    desc: "Social deduction horror — find the infected before it's too late."
+  },
+  {
+    title: "No More Room in Hell",
+    genre: "Horror",
+    steamId: 224260,
+    img: null,
+    link: "https://store.steampowered.com/app/224260/No_More_Room_in_Hell/",
+    platform: ["Steam"],
+    size: "5 GB",
+    free: true,
+    rating: 4.1,
+    players: "5M+",
+    desc: "Cooperative zombie survival with limited resources and realistic weapons."
+  },
+  {
+    title: "SCP: Secret Laboratory",
+    genre: "Horror",
+    steamId: 700330,
+    img: null,
+    link: "https://store.steampowered.com/app/700330/SCP_Secret_Laboratory/",
+    platform: ["Steam"],
+    size: "10 GB",
+    free: true,
+    rating: 4.5,
+    players: "15M+",
+    desc: "Multiplayer horror based on the SCP Foundation universe."
+  },
+
+  // ========== SPORTS ==========
+  {
+    title: "eFootball",
+    genre: "Sports",
+    steamId: 1665460,
+    img: null,
+    link: "https://store.steampowered.com/app/1665460/eFootball_2024/",
+    platform: ["Steam"],
+    size: "30 GB",
+    free: true,
+    rating: 3.2,
+    players: "35M+",
+    desc: "Free-to-play soccer simulation by Konami — the FIFA alternative."
+  },
+  {
+    title: "Rocket League",
+    genre: "Sports",
+    steamId: null,
+    img: "https://cdn2.unrealengine.com/egs-rocketleague-702x336-875e98ef1cfe.jpg",
+    link: "https://store.epicgames.com/en-US/p/rocket-league",
+    platform: ["Epic"],
+    size: "20 GB",
+    free: true,
+    rating: 4.6,
+    players: "90M+",
+    desc: "Supersonic acrobatic rocket-powered car soccer phenomenon."
+  },
+
+  // ========== SIMULATION ==========
+  {
+    title: "The Sims 4",
+    genre: "Simulation",
+    steamId: 1222670,
+    img: null,
+    link: "https://store.steampowered.com/app/1222670/The_Sims_4/",
+    platform: ["Steam", "EA"],
+    size: "35 GB",
+    free: true,
+    rating: 4.1,
+    players: "70M+",
+    desc: "Build homes, create Sims, and live your dream life — now completely free."
+  },
+  {
+    title: "VRChat",
+    genre: "Simulation",
+    steamId: 438100,
+    img: null,
+    link: "https://store.steampowered.com/app/438100/VRChat/",
+    platform: ["Steam"],
+    size: "2 GB",
+    free: true,
+    rating: 4.0,
+    players: "20M+",
+    desc: "Social VR platform with infinite user-created worlds."
+  },
+  {
+    title: "Rec Room",
+    genre: "Simulation",
+    steamId: 471710,
+    img: null,
+    link: "https://store.steampowered.com/app/471710/Rec_Room/",
+    platform: ["Steam"],
+    size: "3 GB",
+    free: true,
+    rating: 3.8,
+    players: "75M+",
+    desc: "Social gaming platform with millions of player-made rooms."
+  },
+  {
+    title: "Second Life",
+    genre: "Simulation",
+    steamId: null,
+    img: "https://secondlife.com/assets/img/homepage/hp-hero-image-2023.jpg",
+    link: "https://secondlife.com/",
+    platform: ["Official"],
+    size: "1 GB",
+    free: true,
+    rating: 3.5,
+    players: "1M+",
+    desc: "Virtual world with user-created content and real economy."
+  },
+  {
+    title: "Microsoft Flight Simulator",
+    genre: "Simulation",
+    steamId: 1250410,
+    img: null,
+    link: "https://store.steampowered.com/app/1250410/Microsoft_Flight_Simulator_2020/",
+    platform: ["Steam"],
+    size: "127 GB",
+    free: false,
+    price: "$59.99",
+    rating: 4.5,
+    players: "10M+",
+    desc: "The entire planet at your fingertips — the ultimate flight sim."
+  },
+
+  // ========== ACTION / ADVENTURE ==========
+  {
+    title: "Honkai: Star Rail",
+    genre: "Action",
+    steamId: 1899640,
+    img: null,
+    link: "https://store.steampowered.com/app/1899640/Honkai_Star_Rail/",
+    platform: ["Steam"],
+    size: "40 GB",
+    free: true,
+    rating: 4.6,
+    players: "30M+",
+    desc: "Cinematic turn-based RPG across the stars by HoYoverse."
+  },
+  {
+    title: "Wuthering Waves",
+    genre: "Action",
+    steamId: null,
+    img: "https://cdn2.unrealengine.com/egs-wutheringwaves-702x336-3c9d45cb2f11.jpg",
+    link: "https://store.epicgames.com/en-US/p/wuthering-waves",
+    platform: ["Epic"],
+    size: "30 GB",
+    free: true,
+    rating: 4.2,
+    players: "10M+",
+    desc: "Open-world action RPG with fast-paced combat and stunning visuals."
+  },
+  {
+    title: "Zenless Zone Zero",
+    genre: "Action",
+    steamId: 2329400,
+    img: null,
+    link: "https://store.steampowered.com/app/2329400/Zenless_Zone_Zero/",
+    platform: ["Steam"],
+    size: "35 GB",
+    free: true,
+    rating: 4.3,
+    players: "15M+",
+    desc: "Urban action RPG with stylish combat by HoYoverse."
+  },
+  {
+    title: "MultiVersus",
+    genre: "Action",
+    steamId: 1818750,
+    img: null,
+    link: "https://store.steampowered.com/app/1818750/MultiVersus/",
+    platform: ["Steam"],
+    size: "8 GB",
+    free: true,
+    rating: 3.5,
+    players: "10M+",
+    desc: "Platform fighter featuring Batman, Bugs Bunny, and more WB icons."
+  },
+  {
+    title: "Brawlhalla",
+    genre: "Action",
+    steamId: 291550,
+    img: null,
+    link: "https://store.steampowered.com/app/291550/Brawlhalla/",
+    platform: ["Steam"],
+    size: "1 GB",
+    free: true,
+    rating: 4.3,
+    players: "100M+",
+    desc: "Free platform fighter with 50+ legends and crossover characters."
+  },
+  {
+    title: "Dauntless",
+    genre: "Action",
+    steamId: null,
+    img: "https://cdn2.unrealengine.com/egs-dauntless-702x336-3df56c2f6c5b.jpg",
+    link: "https://store.epicgames.com/en-US/p/dauntless",
+    platform: ["Epic"],
+    size: "15 GB",
+    free: true,
+    rating: 3.9,
+    players: "25M+",
+    desc: "Co-op action RPG about hunting massive Behemoths."
+  },
+  {
+    title: "Genshin Impact",
+    genre: "Action",
+    steamId: null,
+    img: "https://cdn2.unrealengine.com/egs-genshinimpact-702x336-2e27df1a10e3.jpg",
+    link: "https://genshin.hoyoverse.com/en/download",
+    platform: ["Epic", "Official"],
+    size: "65 GB",
+    free: true,
+    rating: 4.5,
+    players: "65M+",
+    desc: "Open-world adventure RPG with elemental combat and exploration."
+  },
+
+  // ========== SANDBOX / CREATIVE ==========
+  {
+    title: "Roblox",
+    genre: "Sandbox",
+    steamId: null,
+    img: "https://images.rbxcdn.com/d5be2097e9d647197f754091f7aa85b1",
+    link: "https://www.roblox.com/download",
+    platform: ["Official"],
+    size: "500 MB",
+    free: true,
+    rating: 4.0,
+    players: "200M+",
+    desc: "Massive platform with millions of user-created games."
+  },
+  {
+    title: "Core",
+    genre: "Sandbox",
+    steamId: null,
+    img: "https://cdn2.unrealengine.com/egs-core-702x336-2cc5c5d97d6a.jpg",
+    link: "https://store.epicgames.com/en-US/p/core",
+    platform: ["Epic"],
+    size: "12 GB",
+    free: true,
+    rating: 3.5,
+    players: "2M+",
+    desc: "Create and play endless games built by the community."
+  },
+  {
+    title: "Creativerse",
+    genre: "Sandbox",
+    steamId: 280790,
+    img: null,
+    link: "https://store.steampowered.com/app/280790/Creativerse/",
+    platform: ["Steam"],
+    size: "3 GB",
+    free: true,
+    rating: 4.0,
+    players: "5M+",
+    desc: "Voxel sandbox adventure with crafting, building, and exploration."
+  },
+
+  // ========== OTHER POPULAR ==========
+  {
+    title: "Among Us",
+    genre: "Action",
+    steamId: 945360,
+    img: null,
+    link: "https://store.steampowered.com/app/945360/Among_Us/",
+    platform: ["Steam"],
+    size: "500 MB",
+    free: false,
+    price: "$4.99",
+    rating: 4.5,
+    players: "500M+",
+    desc: "Social deduction phenomenon — find the impostor among your crew."
+  },
+  {
+    title: "Palworld",
+    genre: "Survival",
+    steamId: 1623730,
+    img: null,
+    link: "https://store.steampowered.com/app/1623730/Palworld/",
+    platform: ["Steam"],
+    size: "40 GB",
+    free: false,
+    price: "$29.99",
+    rating: 4.3,
+    players: "25M+",
+    desc: "Open-world survival craft with mysterious creatures called Pals."
+  },
+  {
+    title: "Lethal Company",
+    genre: "Horror",
+    steamId: 1966720,
+    img: null,
+    link: "https://store.steampowered.com/app/1966720/Lethal_Company/",
+    platform: ["Steam"],
+    size: "600 MB",
+    free: false,
+    price: "$9.99",
+    rating: 4.8,
+    players: "15M+",
+    desc: "Co-op horror about scavenging moons for scrap to meet profit quotas."
+  },
+  {
+    title: "Content Warning",
+    genre: "Horror",
+    steamId: 2669120,
+    img: null,
+    link: "https://store.steampowered.com/app/2669120/Content_Warning/",
+    platform: ["Steam"],
+    size: "1 GB",
+    free: false,
+    price: "$7.99",
+    rating: 4.6,
+    players: "5M+",
+    desc: "Record spooky viral videos with friends in the old world."
+  },
+  {
+    title: "Stumble Guys",
+    genre: "Action",
+    steamId: 1677740,
+    img: null,
+    link: "https://store.steampowered.com/app/1677740/Stumble_Guys/",
+    platform: ["Steam"],
+    size: "2 GB",
+    free: true,
+    rating: 3.8,
+    players: "100M+",
+    desc: "Massive multiplayer party knockout game with obstacle courses."
+  },
+
+  // ========== EXTRA STRATEGY ==========
+  {
+    title: "Warhammer 40,000: Space Marine 2 - Demo",
+    genre: "Action",
+    steamId: 2183900,
+    img: null,
+    link: "https://store.steampowered.com/app/2183900/Warhammer_40000_Space_Marine_2/",
+    platform: ["Steam"],
+    size: "50 GB",
+    free: false,
+    price: "$39.99",
+    rating: 4.5,
+    players: "5M+",
+    desc: "Crush the alien hordes in this visceral third-person action game."
+  },
+  {
+    title: "Eternal Return",
+    genre: "Strategy",
+    steamId: 1049590,
+    img: null,
+    link: "https://store.steampowered.com/app/1049590/Eternal_Return/",
+    platform: ["Steam"],
+    size: "10 GB",
+    free: true,
+    rating: 4.0,
+    players: "5M+",
+    desc: "Anime-style survival battle arena with crafting strategy."
+  },
+  {
+    title: "Idle Champions of the Forgotten Realms",
+    genre: "Strategy",
+    steamId: 627690,
+    img: null,
+    link: "https://store.steampowered.com/app/627690/Idle_Champions_of_the_Forgotten_Realms/",
+    platform: ["Steam"],
+    size: "2 GB",
+    free: true,
+    rating: 3.7,
+    players: "5M+",
+    desc: "D&D strategy idle game with over 100 champions to unlock."
+  },
+  {
+    title: "Warhammer: Vermintide 2",
+    genre: "Action",
+    steamId: 552500,
+    img: null,
+    link: "https://store.steampowered.com/app/552500/Warhammer_Vermintide_2/",
+    platform: ["Steam"],
+    size: "55 GB",
+    free: false,
+    price: "$29.99",
+    rating: 4.4,
+    players: "5M+",
+    desc: "4-player co-op melee action set in the Warhammer Fantasy world."
+  },
+  {
+    title: "Starcraft II",
+    genre: "Strategy",
+    steamId: null,
+    img: "https://blz-contentstack-images.akamaized.net/v3/assets/blt0e00eb71333df64e/blt3bdda0fe1bd0f3e1/starcraft-ii.webp",
+    link: "https://starcraft2.blizzard.com/",
+    platform: ["Battle.net"],
+    size: "30 GB",
+    free: true,
+    rating: 4.6,
+    players: "10M+",
+    desc: "Legendary real-time strategy with competitive multiplayer."
+  },
+  {
+    title: "Legends of Idleon",
+    genre: "RPG",
+    steamId: 1476970,
+    img: null,
+    link: "https://store.steampowered.com/app/1476970/Legends_of_IdleOn__Idle_MMO/",
+    platform: ["Steam"],
+    size: "500 MB",
+    free: true,
+    rating: 4.2,
+    players: "2M+",
+    desc: "Idle MMO with quirky humor and endless character progression."
+  },
+  {
+    title: "Torchlight: Infinite",
+    genre: "RPG",
+    steamId: 1974050,
+    img: null,
+    link: "https://store.steampowered.com/app/1974050/Torchlight_Infinite/",
+    platform: ["Steam"],
+    size: "15 GB",
+    free: true,
+    rating: 3.9,
+    players: "3M+",
+    desc: "Cross-platform ARPG with deep builds and loot."
+  },
+  {
+    title: "Last Epoch",
+    genre: "RPG",
+    steamId: 899770,
+    img: null,
+    link: "https://store.steampowered.com/app/899770/Last_Epoch/",
+    platform: ["Steam"],
+    size: "25 GB",
+    free: false,
+    price: "$34.99",
+    rating: 4.4,
+    players: "3M+",
+    desc: "Time-traveling ARPG with deep skill trees and crafting."
+  },
+  {
+    title: "Diablo IV",
+    genre: "RPG",
+    steamId: 2344520,
+    img: null,
+    link: "https://store.steampowered.com/app/2344520/Diablo_IV/",
+    platform: ["Steam", "Battle.net"],
+    size: "90 GB",
+    free: false,
+    price: "$49.99",
+    rating: 4.1,
+    players: "10M+",
+    desc: "Return to darkness in Blizzard's legendary action RPG franchise."
+  },
+  {
+    title: "Hades II",
+    genre: "RPG",
+    steamId: 1145350,
+    img: null,
+    link: "https://store.steampowered.com/app/1145350/Hades_II/",
+    platform: ["Steam"],
+    size: "10 GB",
+    free: false,
+    price: "$29.99",
+    rating: 4.8,
+    players: "5M+",
+    desc: "Supergiant's sequel to the GOTY roguelike — play as Melinoe."
+  },
+  {
+    title: "Elden Ring",
+    genre: "RPG",
+    steamId: 1245620,
+    img: null,
+    link: "https://store.steampowered.com/app/1245620/ELDEN_RING/",
+    platform: ["Steam"],
+    size: "60 GB",
+    free: false,
+    price: "$49.99",
+    rating: 4.7,
+    players: "25M+",
+    desc: "FromSoftware's masterpiece open-world action RPG."
+  },
+  {
+    title: "Baldur's Gate 3",
+    genre: "RPG",
+    steamId: 1086940,
+    img: null,
+    link: "https://store.steampowered.com/app/1086940/Baldurs_Gate_3/",
+    platform: ["Steam"],
+    size: "120 GB",
+    free: false,
+    price: "$59.99",
+    rating: 4.9,
+    players: "15M+",
+    desc: "Game of the Year RPG with unprecedented choice and D&D combat."
+  },
+
+  // ========== MORE FPS ==========
+  {
+    title: "Crossfire",
+    genre: "FPS",
+    steamId: null,
+    img: "https://crossfire.z8games.com/images/crossfire-logo-share.jpg",
+    link: "https://crossfire.z8games.com/",
+    platform: ["Official"],
+    size: "8 GB",
+    free: true,
+    rating: 3.8,
+    players: "650M+",
+    desc: "One of the most popular FPS games globally with massive playerbase."
+  },
+  {
+    title: "Escape from Tarkov",
+    genre: "FPS",
+    steamId: null,
+    img: "https://www.escapefromtarkov.com/uploads/images/logo-meta.jpg",
+    link: "https://www.escapefromtarkov.com/",
+    platform: ["Official"],
+    size: "25 GB",
+    free: false,
+    price: "$44.99",
+    rating: 4.3,
+    players: "10M+",
+    desc: "Hardcore tactical FPS with realistic gunplay and survival mechanics."
+  },
+  {
+    title: "Hell Let Loose",
+    genre: "FPS",
+    steamId: 686810,
+    img: null,
+    link: "https://store.steampowered.com/app/686810/Hell_Let_Loose/",
+    platform: ["Steam"],
+    size: "30 GB",
+    free: false,
+    price: "$39.99",
+    rating: 4.4,
+    players: "3M+",
+    desc: "50v50 WWII multiplayer with realistic strategic gameplay."
+  },
+  {
+    title: "Hunt: Showdown 1896",
+    genre: "FPS",
+    steamId: 594650,
+    img: null,
+    link: "https://store.steampowered.com/app/594650/Hunt_Showdown_1896/",
+    platform: ["Steam"],
+    size: "40 GB",
+    free: false,
+    price: "$39.99",
+    rating: 4.3,
+    players: "5M+",
+    desc: "PvPvE bounty hunting in a dark 19th-century bayou setting."
+  },
+
+  // ========== MORE ADVENTURE ==========
+  {
+    title: "Warframe",
+    genre: "Adventure",
+    steamId: 230410,
+    img: null,
+    link: "https://store.steampowered.com/app/230410/Warframe/",
+    platform: ["Steam"],
+    size: "50 GB",
+    free: true,
+    rating: 4.6,
+    players: "70M+",
+    desc: "Free co-op action game with incredible movement and deep systems."
+  },
+  {
+    title: "Deep Rock Galactic",
+    genre: "Adventure",
+    steamId: 548430,
+    img: null,
+    link: "https://store.steampowered.com/app/548430/Deep_Rock_Galactic/",
+    platform: ["Steam"],
+    size: "3 GB",
+    free: false,
+    price: "$29.99",
+    rating: 4.8,
+    players: "10M+",
+    desc: "Cooperative mining FPS with destructible terrain. Rock and Stone!"
+  },
+
+  // ========== EXTRA GAMES ==========
+  {
+    title: "Apex Legends Mobile (PC via Emulator)",
+    genre: "Battle Royale",
+    steamId: 1172470,
+    img: null,
+    link: "https://store.steampowered.com/app/1172470/Apex_Legends/",
+    platform: ["Steam"],
+    size: "56 GB",
+    free: true,
+    rating: 4.4,
+    players: "100M+",
+    desc: "Play Apex Legends on PC — the definitive experience."
+  },
+  {
+    title: "Arma Reforger",
+    genre: "FPS",
+    steamId: 1874880,
+    img: null,
+    link: "https://store.steampowered.com/app/1874880/Arma_Reforger/",
+    platform: ["Steam"],
+    size: "20 GB",
+    free: false,
+    price: "$29.99",
+    rating: 3.5,
+    players: "2M+",
+    desc: "Military sandbox built on Bohemia's next-gen Enfusion engine."
+  },
+  {
+    title: "Neverwinter",
+    genre: "MMORPG",
+    steamId: 109600,
+    img: null,
+    link: "https://store.steampowered.com/app/109600/Neverwinter/",
+    platform: ["Steam"],
+    size: "10 GB",
+    free: true,
+    rating: 3.6,
+    players: "20M+",
+    desc: "Free D&D action MMORPG set in the Forgotten Realms."
+  },
+  {
+    title: "TERA",
+    genre: "MMORPG",
+    steamId: 323370,
+    img: null,
+    link: "https://store.steampowered.com/app/323370/TERA/",
+    platform: ["Steam"],
+    size: "45 GB",
+    free: true,
+    rating: 3.5,
+    players: "25M+",
+    desc: "Action combat MMORPG with dodge-based gameplay."
+  },
+  {
+    title: "Blade & Soul",
+    genre: "MMORPG",
+    steamId: null,
+    img: "https://static.bladeandsoul.com/bns-share.jpg",
+    link: "https://www.bladeandsoul.com/",
+    platform: ["Official"],
+    size: "40 GB",
+    free: true,
+    rating: 3.7,
+    players: "10M+",
+    desc: "Martial arts MMORPG with stunning combat animations."
+  },
+  {
+    title: "Eve Online",
+    genre: "MMORPG",
+    steamId: 8500,
+    img: null,
+    link: "https://store.steampowered.com/app/8500/EVE_Online/",
+    platform: ["Steam"],
+    size: "20 GB",
+    free: true,
+    rating: 4.0,
+    players: "2M+",
+    desc: "Massive space sandbox with player-driven economy and politics."
+  },
+  {
+    title: "Aion Classic",
+    genre: "MMORPG",
+    steamId: null,
+    img: "https://aion.plaync.com/images/aion_share.jpg",
+    link: "https://www.aiononline.com/",
+    platform: ["Official"],
+    size: "30 GB",
+    free: true,
+    rating: 3.8,
+    players: "5M+",
+    desc: "Classic fantasy MMORPG with aerial combat and PvPvE."
+  },
+  {
+    title: "Crossout",
+    genre: "Action",
+    steamId: 386180,
+    img: null,
+    link: "https://store.steampowered.com/app/386180/Crossout/",
+    platform: ["Steam"],
+    size: "12 GB",
+    free: true,
+    rating: 3.7,
+    players: "10M+",
+    desc: "Post-apocalyptic vehicular combat — build, ride, destroy."
+  },
+  {
+    title: "Mech Arena",
+    genre: "Action",
+    steamId: 1755830,
+    img: null,
+    link: "https://store.steampowered.com/app/1755830/Mech_Arena/",
+    platform: ["Steam"],
+    size: "3 GB",
+    free: true,
+    rating: 3.6,
+    players: "5M+",
+    desc: "Competitive mech combat with fast 5v5 matches."
+  },
+  {
+    title: "Robocraft",
+    genre: "Action",
+    steamId: 301520,
+    img: null,
+    link: "https://store.steampowered.com/app/301520/Robocraft/",
+    platform: ["Steam"],
+    size: "2 GB",
+    free: true,
+    rating: 3.9,
+    players: "10M+",
+    desc: "Build robots from cubes and fight them in online battles."
+  },
+  {
+    title: "Forza Motorsport (Demo)",
+    genre: "Racing",
+    steamId: 2440510,
+    img: null,
+    link: "https://store.steampowered.com/app/2440510/Forza_Motorsport/",
+    platform: ["Steam"],
+    size: "95 GB",
+    free: false,
+    price: "$69.99",
+    rating: 3.9,
+    players: "5M+",
+    desc: "The definitive racing simulation from Turn 10 Studios."
+  },
+  {
+    title: "Need for Speed Unbound",
+    genre: "Racing",
+    steamId: 1846380,
+    img: null,
+    link: "https://store.steampowered.com/app/1846380/Need_for_Speed_Unbound/",
+    platform: ["Steam", "EA"],
+    size: "50 GB",
+    free: false,
+    price: "$29.99",
+    rating: 4.0,
+    players: "5M+",
+    desc: "Street racing with anime-inspired style and risk vs reward."
+  }
+];
+
+// ===== DEDUP GAMES (same title can appear in multiple genre categories) =====
+const seen = new Set();
+const UNIQUE_GAMES = GAMES.filter(g => {
+  const key = g.title + '|' + g.genre;
+  if (seen.has(key)) return false;
+  seen.add(key);
+  return true;
+});
+
+// ===== GENRE COLORS =====
+const GENRE_CLASS = {
+  'Battle Royale': 'genre-br',
+  'Survival': 'genre-survival',
+  'FPS': 'genre-fps',
+  'MMORPG': 'genre-mmorpg',
+  'MOBA': 'genre-moba',
+  'Racing': 'genre-racing',
+  'Horror': 'genre-horror',
+  'Action': 'genre-action',
+  'Adventure': 'genre-adventure',
+  'RPG': 'genre-rpg',
+  'Sandbox': 'genre-sandbox',
+  'Strategy': 'genre-strategy',
+  'Sports': 'genre-sports',
+  'Simulation': 'genre-simulation',
+  'Card': 'genre-card'
+};
+
+// ===== PLATFORM ICONS (SVG) =====
+function platformIcon(name) {
+  switch(name) {
+    case 'Steam':
+      return '<svg class="pcg-platform-icon" viewBox="0 0 24 24" fill="#c7d5e0" title="Steam"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V22l.15-.02c.62.01 1.23-.04 1.85-.13C17.52 20.87 22 16.84 22 12c0-5.52-4.48-10-10-10zm0 2c4.41 0 8 3.59 8 8s-3.59 8-8 8c-.67 0-1.32-.09-1.95-.24l2.53-1.02c1.56-.63 2.31-2.39 1.68-3.95-.57-1.41-2.07-2.16-3.49-1.83L7 15.97c-.14-1.28.11-2.61.77-3.81C8.78 10.34 10.3 9.09 12.12 8.68c3.63-.82 7.08 1.46 7.68 5.08.17.99.09 1.98-.21 2.9-.82 2.49-3.06 4.17-5.59 4.33-.2.01-.39.01-.59.01"/></svg>';
+    case 'Epic':
+      return '<svg class="pcg-platform-icon" viewBox="0 0 24 24" fill="#ccc" title="Epic Games"><rect x="3" y="3" width="18" height="18" rx="2" fill="none" stroke="#ccc" stroke-width="1.5"/><text x="12" y="16" text-anchor="middle" font-size="10" font-weight="bold" fill="#ccc">E</text></svg>';
+    case 'Battle.net':
+      return '<svg class="pcg-platform-icon" viewBox="0 0 24 24" fill="#00AEFF" title="Battle.net"><circle cx="12" cy="12" r="9" fill="none" stroke="#00AEFF" stroke-width="1.5"/><text x="12" y="16" text-anchor="middle" font-size="10" font-weight="bold" fill="#00AEFF">B</text></svg>';
+    case 'Riot':
+      return '<svg class="pcg-platform-icon" viewBox="0 0 24 24" fill="#D32936" title="Riot Games"><polygon points="12,3 22,20 2,20" fill="none" stroke="#D32936" stroke-width="1.5"/><text x="12" y="18" text-anchor="middle" font-size="8" font-weight="bold" fill="#D32936">R</text></svg>';
+    case 'EA':
+      return '<svg class="pcg-platform-icon" viewBox="0 0 24 24" fill="#ff4747" title="EA"><rect x="3" y="6" width="18" height="12" rx="2" fill="none" stroke="#ff4747" stroke-width="1.5"/><text x="12" y="16" text-anchor="middle" font-size="9" font-weight="bold" fill="#ff4747">EA</text></svg>';
+    case 'Ubisoft':
+      return '<svg class="pcg-platform-icon" viewBox="0 0 24 24" fill="#0070FF" title="Ubisoft"><circle cx="12" cy="12" r="9" fill="none" stroke="#0070FF" stroke-width="1.5"/><text x="12" y="16" text-anchor="middle" font-size="9" font-weight="bold" fill="#0070FF">U</text></svg>';
+    default:
+      return '<svg class="pcg-platform-icon" viewBox="0 0 24 24" fill="#888" title="' + name + '"><circle cx="12" cy="12" r="9" fill="none" stroke="#888" stroke-width="1.5"/><text x="12" y="16" text-anchor="middle" font-size="7" font-weight="bold" fill="#888">' + name.charAt(0) + '</text></svg>';
+  }
+}
+
+// ===== GET IMAGE URL =====
+function getGameImage(game) {
+  if (game.img) return game.img;
+  if (game.steamId) return 'https://cdn.cloudflare.steamstatic.com/steam/apps/' + game.steamId + '/header.jpg';
+  return '';
+}
+
+// ===== RENDER A CARD =====
+function renderCard(game) {
+  const imgUrl = getGameImage(game);
+  const genreClass = GENRE_CLASS[game.genre] || 'genre-action';
+  const priceHTML = game.free
+    ? '<span class="pcg-badge-price pcg-badge-free">FREE</span>'
+    : '<span class="pcg-badge-price pcg-badge-paid">' + (game.price || 'Paid') + '</span>';
+  const playersHTML = game.players
+    ? '<span class="pcg-badge-players">' + game.players + ' Players</span>'
+    : '';
+  const platformsHTML = game.platform.map(p => platformIcon(p)).join('');
+  const stars = '\u2605'.repeat(Math.round(game.rating)) + '\u2606'.repeat(5 - Math.round(game.rating));
+
+  return '<div class="pcg-card" data-genre="' + game.genre + '" data-title="' + game.title.toLowerCase() + '" data-free="' + game.free + '" data-rating="' + game.rating + '">' +
+    '<div class="pcg-card-img-wrap">' +
+      '<img src="' + imgUrl + '" alt="' + game.title + '" loading="lazy" onerror="this.style.display=\'none\'">' +
+      priceHTML +
+      playersHTML +
+    '</div>' +
+    '<div class="pcg-card-body">' +
+      '<div class="pcg-card-title" title="' + game.title + '">' + game.title + '</div>' +
+      '<div class="pcg-card-meta">' +
+        '<span class="pcg-genre-badge ' + genreClass + '">' + game.genre + '</span>' +
+        '<div class="pcg-platform">' + platformsHTML + '</div>' +
+        '<span class="pcg-card-size">' + game.size + '</span>' +
+      '</div>' +
+      '<div class="pcg-card-footer">' +
+        '<span class="pcg-rating">' + stars + ' ' + game.rating.toFixed(1) + '</span>' +
+        '<a href="' + game.link + '" target="_blank" rel="noopener" class="pcg-btn-dl" onclick="event.stopPropagation()">' +
+          '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>' +
+          (game.free ? 'Download' : 'Buy') +
+        '</a>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
+// ===== RENDER ALL =====
+let activeGenre = 'all';
+let searchQuery = '';
+let sortMode = 'popular';
+
+function renderGrid() {
+  const grid = document.getElementById('gameGrid');
+  let filtered = UNIQUE_GAMES;
+
+  // Genre filter
+  if (activeGenre !== 'all') {
+    filtered = filtered.filter(g => g.genre === activeGenre);
+  }
+
+  // Search filter
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase();
+    filtered = filtered.filter(g =>
+      g.title.toLowerCase().includes(q) ||
+      g.genre.toLowerCase().includes(q) ||
+      g.desc.toLowerCase().includes(q)
+    );
+  }
+
+  // Sort
+  switch(sortMode) {
+    case 'name':
+      filtered.sort((a, b) => a.title.localeCompare(b.title));
+      break;
+    case 'name-desc':
+      filtered.sort((a, b) => b.title.localeCompare(a.title));
+      break;
+    case 'rating':
+      filtered.sort((a, b) => b.rating - a.rating);
+      break;
+    case 'free':
+      filtered.sort((a, b) => (b.free ? 1 : 0) - (a.free ? 1 : 0));
+      break;
+    default: // popular — keep original order
+      break;
+  }
+
+  // Update count
+  document.getElementById('gameCount').textContent = filtered.length + ' game' + (filtered.length !== 1 ? 's' : '');
+
+  if (filtered.length === 0) {
+    grid.innerHTML = '<div class="pcg-no-results"><h3>No games found</h3><p>Try a different search or filter</p></div>';
+    return;
+  }
+
+  grid.innerHTML = filtered.map(renderCard).join('');
+
+  // Make cards clickable to open link
+  grid.querySelectorAll('.pcg-card').forEach((card, i) => {
+    card.addEventListener('click', () => {
+      window.open(filtered[i].link, '_blank');
+    });
+  });
+}
+
+// ===== EVENT LISTENERS =====
+// Genre pills
+document.querySelectorAll('.pcg-pill').forEach(pill => {
+  pill.addEventListener('click', () => {
+    document.querySelector('.pcg-pill.active').classList.remove('active');
+    pill.classList.add('active');
+    activeGenre = pill.dataset.genre;
+    renderGrid();
+  });
+});
+
+// Search
+let searchTimer = null;
+document.getElementById('gameSearch').addEventListener('input', (e) => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => {
+    searchQuery = e.target.value.trim();
+    renderGrid();
+  }, 200);
+});
+
+// Sort
+document.getElementById('gameSort').addEventListener('change', (e) => {
+  sortMode = e.target.value;
+  renderGrid();
+});
+
+// ===== NAVBAR SCROLL =====
+window.addEventListener('scroll', () => {
+  const nav = document.getElementById('navbar');
+  if (window.scrollY > 10) {
+    nav.style.background = 'rgba(20,20,20,0.97)';
+  } else {
+    nav.style.background = 'transparent';
+  }
+});
+
+// ===== INIT =====
+renderGrid();
+</script>
+</body>
+</html>

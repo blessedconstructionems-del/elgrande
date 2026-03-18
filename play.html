@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Play — ElGrande</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
+  <style>
+    body { background: #000; }
+
+    .play-page {
+      min-height: 100vh;
+      padding-top: var(--nav-height);
+    }
+
+    .play-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #999;
+      text-decoration: none;
+      font-size: 0.9rem;
+      padding: 16px 4%;
+      transition: color 0.2s;
+    }
+    .play-back:hover { color: #fff; }
+    .play-back svg { width: 18px; height: 18px; }
+
+    .game-title-bar {
+      padding: 0 4% 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .game-title-bar h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+    }
+    .game-title-bar .console-tag {
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 4px;
+      background: var(--red);
+      color: #fff;
+      text-transform: uppercase;
+    }
+
+    /* Iframe game container */
+    .iframe-wrap {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 4%;
+    }
+    .iframe-container {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16/9;
+      max-height: 80vh;
+      background: #0a0a0a;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    .iframe-container iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    /* Loading overlay */
+    .iframe-loading {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #0a0a0a;
+      z-index: 5;
+      transition: opacity 0.5s;
+    }
+    .iframe-loading.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .iframe-loading .spinner {
+      width: 48px;
+      height: 48px;
+      border: 3px solid rgba(0,102,255,0.2);
+      border-top-color: #0066ff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .iframe-loading p {
+      color: #999;
+      font-size: 0.9rem;
+    }
+
+    /* Server bar */
+    .server-bar {
+      max-width: 1200px;
+      margin: 12px auto 0;
+      padding: 0 4%;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .server-bar-label {
+      color: #666;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .server-btn {
+      padding: 6px 16px;
+      border-radius: 4px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.04);
+      color: #ccc;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .server-btn:hover {
+      background: rgba(0,102,255,0.15);
+      border-color: rgba(0,102,255,0.4);
+      color: #fff;
+    }
+    .server-btn.active {
+      background: var(--red);
+      border-color: var(--red);
+      color: #fff;
+    }
+    .server-btn.upload-btn {
+      margin-left: auto;
+      background: rgba(255,255,255,0.06);
+      border-color: rgba(255,255,255,0.15);
+    }
+    .server-btn.upload-btn:hover {
+      background: rgba(255,255,255,0.1);
+    }
+    .fullscreen-btn {
+      padding: 6px 12px;
+      border-radius: 4px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.04);
+      color: #ccc;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .fullscreen-btn:hover {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+    }
+
+    /* Emulator container (for ROM upload mode) */
+    .emulator-wrap {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 4%;
+    }
+    #game {
+      width: 100%;
+      aspect-ratio: 4/3;
+      max-height: 75vh;
+      background: #0a0a0a;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    /* Upload section */
+    .upload-section {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 60px 4%;
+    }
+    .upload-section.compact {
+      padding: 20px 4% 40px;
+    }
+    .upload-zone {
+      border: 2px dashed rgba(0,102,255,0.4);
+      border-radius: 12px;
+      padding: 60px 30px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.3s, background 0.3s;
+      background: rgba(0,102,255,0.02);
+    }
+    .upload-section.compact .upload-zone {
+      padding: 24px 20px;
+    }
+    .upload-zone:hover, .upload-zone.dragover {
+      border-color: var(--red);
+      background: rgba(0,102,255,0.06);
+    }
+    .upload-zone-icon {
+      font-size: 3rem;
+      margin-bottom: 16px;
+      display: block;
+    }
+    .upload-section.compact .upload-zone-icon {
+      font-size: 1.5rem;
+      margin-bottom: 8px;
+    }
+    .upload-zone h2 {
+      font-size: 1.4rem;
+      margin-bottom: 10px;
+    }
+    .upload-section.compact .upload-zone h2 {
+      font-size: 1rem;
+    }
+    .upload-zone p {
+      color: #888;
+      font-size: 0.9rem;
+      margin-bottom: 20px;
+    }
+    .upload-section.compact .upload-zone p {
+      font-size: 0.8rem;
+      margin-bottom: 12px;
+    }
+    .upload-zone .btn {
+      pointer-events: none;
+    }
+    .upload-zone input[type="file"] {
+      display: none;
+    }
+
+    .core-select-wrap {
+      max-width: 800px;
+      margin: 20px auto 0;
+      padding: 0 4%;
+      display: none;
+    }
+    .core-select-wrap.visible { display: block; }
+    .core-select-wrap label {
+      display: block;
+      color: #aaa;
+      font-size: 0.85rem;
+      margin-bottom: 8px;
+    }
+    .core-select-wrap select {
+      width: 100%;
+      max-width: 300px;
+      padding: 10px 14px;
+      background: #222;
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #fff;
+      font-size: 0.95rem;
+      border-radius: 4px;
+      outline: none;
+      cursor: pointer;
+    }
+    .core-select-wrap select:focus {
+      border-color: var(--red);
+    }
+
+    /* Controls info */
+    .controls-info {
+      max-width: 1200px;
+      margin: 30px auto 0;
+      padding: 0 4% 40px;
+    }
+    .controls-info h3 {
+      font-size: 1.1rem;
+      margin-bottom: 14px;
+      color: #e5e5e5;
+    }
+    .controls-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+    }
+    .control-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 6px;
+      padding: 14px;
+    }
+    .control-card h4 {
+      font-size: 0.85rem;
+      color: var(--red);
+      margin-bottom: 8px;
+    }
+    .control-card p {
+      color: #999;
+      font-size: 0.78rem;
+      line-height: 1.6;
+    }
+    .control-card kbd {
+      background: rgba(255,255,255,0.1);
+      padding: 1px 6px;
+      border-radius: 3px;
+      font-size: 0.75rem;
+      font-family: monospace;
+      color: #ddd;
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+
+    .tips-banner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 4% 40px;
+    }
+    .tips-banner-inner {
+      background: linear-gradient(135deg, rgba(0,102,255,0.08), rgba(88,28,135,0.08));
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 8px;
+      padding: 20px 24px;
+    }
+    .tips-banner h3 {
+      font-size: 0.95rem;
+      margin-bottom: 10px;
+      color: #e5e5e5;
+    }
+    .tips-banner ul {
+      list-style: none;
+      padding: 0;
+    }
+    .tips-banner li {
+      color: #999;
+      font-size: 0.82rem;
+      line-height: 1.8;
+      padding-left: 18px;
+      position: relative;
+    }
+    .tips-banner li::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 10px;
+      width: 6px;
+      height: 6px;
+      background: var(--red);
+      border-radius: 50%;
+    }
+
+    /* Ad shield overlay */
+    .ad-shield {
+      position: fixed;
+      inset: 0;
+      z-index: 99999;
+      display: none;
+    }
+    .ad-shield.active {
+      display: block;
+    }
+    .ad-shield-close {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 30px;
+      height: 30px;
+      background: rgba(0,0,0,0.8);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 50%;
+      color: #fff;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100000;
+    }
+
+    @media (max-width: 600px) {
+      .game-title-bar h1 { font-size: 1.2rem; }
+      .iframe-container { aspect-ratio: 16/10; }
+      #game { aspect-ratio: 16/9; }
+      .controls-grid { grid-template-columns: 1fr; }
+      .server-bar { gap: 6px; }
+      .server-btn { padding: 5px 10px; font-size: 0.75rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar solid" id="navbar">
+  <div class="navbar-left">
+    <a href="index.html" class="logo">ElGrande</a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="tv.html">TV Shows</a></li>
+      <li><a href="movies.html">Movies</a></li>
+      <li><a href="games.html" class="active">Games</a></li>
+      <li><a href="pc-games.html">PC Games</a></li>
+      <li><a href="movies.html?genre=28">New &amp; Popular</a></li>
+    </ul>
+    <span class="tagline">Stream Everything. Free.</span>
+  </div>
+  <div class="navbar-right">
+    <button class="nav-icon-btn" title="Notifications">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"/></svg>
+      <span class="notification-dot"></span>
+    </button>
+    <div class="profile-avatar" title="ElGrande">G</div>
+  </div>
+</nav>
+
+<!-- Ad Shield (blocks popups from iframe sites) -->
+<div class="ad-shield" id="adShield">
+  <div class="ad-shield-close" id="adShieldClose">&times;</div>
+</div>
+
+<div class="play-page">
+  <!-- Back link -->
+  <a href="games.html" class="play-back">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    Back to Games
+  </a>
+
+  <!-- Game Title -->
+  <div class="game-title-bar" id="titleBar" style="display:none;">
+    <h1 id="gameTitle"></h1>
+    <span class="console-tag" id="consoleTag"></span>
+  </div>
+
+  <!-- Iframe Container (for retro game embed) -->
+  <div class="iframe-wrap" id="iframeWrap" style="display:none;">
+    <div class="iframe-container" id="iframeContainer">
+      <div class="iframe-loading" id="iframeLoading">
+        <div class="spinner"></div>
+        <p>Loading game...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Server switching bar -->
+  <div class="server-bar" id="serverBar" style="display:none;">
+    <span class="server-bar-label">Server:</span>
+    <button class="server-btn active" data-server="1" id="srv1">Server 1</button>
+    <button class="server-btn" data-server="2" id="srv2">Server 2</button>
+    <button class="server-btn" data-server="3" id="srv3">Server 3</button>
+    <button class="fullscreen-btn" id="fullscreenBtn" title="Fullscreen">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+      Fullscreen
+    </button>
+    <button class="server-btn upload-btn" id="showUploadBtn">Upload ROM</button>
+  </div>
+
+  <!-- Emulator Container (shown when playing a ROM via EmulatorJS) -->
+  <div class="emulator-wrap" id="emulatorWrap" style="display:none;">
+    <div id="game"></div>
+  </div>
+
+  <!-- Upload Section -->
+  <div class="upload-section" id="uploadSection" style="display:none;">
+    <div id="gameUploadInfo" style="text-align:center; margin-bottom: 24px; display:none;">
+      <h2 id="uploadGameTitle" style="font-size: 1.6rem; font-weight: 700; margin-bottom: 8px;"></h2>
+      <span id="uploadConsoleTag" style="display:inline-block; font-size: 0.75rem; font-weight: 600; padding: 3px 10px; border-radius: 4px; background: var(--red); color: #fff; text-transform: uppercase;"></span>
+    </div>
+    <div class="upload-zone" id="uploadZone">
+      <span class="upload-zone-icon">&#127918;</span>
+      <h2 id="uploadHeading">Upload Your Own ROM</h2>
+      <p id="uploadDesc">Drag and drop a ROM file here, or click to browse.<br>Supports: .nes, .smc, .sfc, .z64, .n64, .gb, .gbc, .gba, .bin, .md, .gen, .iso, .cue, .pbp, .nds, .a26, .zip</p>
+      <span class="btn btn-primary">Browse Files</span>
+      <input type="file" id="romFile" accept=".nes,.smc,.sfc,.z64,.n64,.v64,.gb,.gbc,.gba,.bin,.md,.gen,.sms,.iso,.cue,.pbp,.cso,.nds,.a26,.zip,.7z">
+    </div>
+  </div>
+
+  <!-- Core selector for uploaded ROMs -->
+  <div class="core-select-wrap" id="coreSelectWrap">
+    <label>Select Console / System:</label>
+    <select id="coreSelect">
+      <option value="">-- Auto-detect --</option>
+      <option value="nes">NES (Nintendo Entertainment System)</option>
+      <option value="snes">SNES (Super Nintendo)</option>
+      <option value="n64">N64 (Nintendo 64)</option>
+      <option value="gb">Game Boy / Game Boy Color</option>
+      <option value="gba">Game Boy Advance</option>
+      <option value="segaMD">Sega Genesis / Mega Drive</option>
+      <option value="segaMS">Sega Master System</option>
+      <option value="segaSaturn">Sega Saturn</option>
+      <option value="psx">PlayStation 1 (PS1)</option>
+      <option value="psp">PSP (PlayStation Portable)</option>
+      <option value="atari2600">Atari 2600</option>
+      <option value="arcade">Arcade / MAME / Neo Geo</option>
+      <option value="nds">Nintendo DS</option>
+    </select>
+  </div>
+
+  <!-- Controls Info -->
+  <div class="controls-info">
+    <h3>Keyboard Controls</h3>
+    <div class="controls-grid">
+      <div class="control-card">
+        <h4>D-Pad / Movement</h4>
+        <p><kbd>Arrow Keys</kbd> or <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></p>
+      </div>
+      <div class="control-card">
+        <h4>Action Buttons</h4>
+        <p><kbd>X</kbd> = A &nbsp; <kbd>Z</kbd> = B<br><kbd>S</kbd> = X &nbsp; <kbd>A</kbd> = Y</p>
+      </div>
+      <div class="control-card">
+        <h4>Shoulder Buttons</h4>
+        <p><kbd>Q</kbd> = L &nbsp; <kbd>E</kbd> = R</p>
+      </div>
+      <div class="control-card">
+        <h4>System</h4>
+        <p><kbd>Enter</kbd> = Start &nbsp; <kbd>Shift</kbd> = Select<br><kbd>F11</kbd> = Fullscreen</p>
+      </div>
+      <div class="control-card">
+        <h4>Save States</h4>
+        <p>Use the emulator menu for save/load state, screenshot, and more.</p>
+      </div>
+      <div class="control-card">
+        <h4>Gamepad Support</h4>
+        <p>Plug in a USB or Bluetooth controller for the best experience. Auto-detected.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tips -->
+  <div class="tips-banner">
+    <div class="tips-banner-inner">
+      <h3>Tips for Best Experience</h3>
+      <ul>
+        <li>Use <strong>Chrome or Edge</strong> for best emulation performance</li>
+        <li>If a server doesn't load, try switching to another server</li>
+        <li>Click <strong>Fullscreen</strong> for the best gaming experience</li>
+        <li>Some games may take a few seconds to initialize</li>
+        <li>Upload ROM option is available if streaming servers are down</li>
+        <li>Gamepad support is automatic — just plug in and play</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-social">
+    <a href="#" title="Facebook">&#xf09a;</a>
+    <a href="#" title="Instagram">&#xf16d;</a>
+    <a href="#" title="Twitter">&#xf099;</a>
+    <a href="#" title="YouTube">&#xf167;</a>
+  </div>
+  <div class="footer-links">
+    <a href="#">Audio Description</a>
+    <a href="#">Help Centre</a>
+    <a href="#">Gift Cards</a>
+    <a href="#">Media Centre</a>
+    <a href="#">Investor Relations</a>
+    <a href="#">Jobs</a>
+    <a href="#">Terms of Use</a>
+    <a href="#">Privacy</a>
+    <a href="#">Legal Notices</a>
+    <a href="#">Cookie Preferences</a>
+    <a href="#">Corporate Information</a>
+    <a href="#">Contact Us</a>
+  </div>
+  <button class="footer-service-code">Service Code</button>
+  <div class="footer-bottom">
+    <p>&copy; 2025 ElGrande. Retro gaming powered by EmulatorJS.</p>
+  </div>
+</footer>
+
+<script>
+const CONSOLE_NAMES = {
+  nes: "NES", snes: "SNES", n64: "N64",
+  gb: "Game Boy", gbc: "GBC", gba: "GBA",
+  genesis: "Genesis", segaMD: "Genesis", segaMS: "Master System",
+  sms: "Master System", saturn: "Saturn", segaSaturn: "Saturn",
+  ps1: "PS1", psx: "PS1", psp: "PSP",
+  atari2600: "Atari 2600", neogeo: "Neo Geo",
+  arcade: "Arcade", nds: "NDS"
+};
+
+// System param to retrogames.cc path segment
+const SYSTEM_TO_RGC = {
+  nes: "nes-games",
+  snes: "snes-games",
+  n64: "n64-games",
+  gb: "gameb-games",
+  gbc: "gbc-games",
+  gba: "gba-games",
+  genesis: "genesis-games",
+  segaMD: "genesis-games",
+  sms: "segams-games",
+  segaMS: "segams-games",
+  saturn: "saturn-games",
+  segaSaturn: "saturn-games",
+  ps1: "psx-games",
+  psx: "psx-games",
+  psp: "psp-games",
+  atari2600: "atari2600-games",
+  neogeo: "neogeo-games",
+  arcade: "arcade-games",
+  nds: "nds-games"
+};
+
+// Extension to core mapping for auto-detection
+const EXT_TO_CORE = {
+  'nes': 'nes',
+  'smc': 'snes', 'sfc': 'snes',
+  'z64': 'n64', 'n64': 'n64', 'v64': 'n64',
+  'gb': 'gb', 'gbc': 'gb',
+  'gba': 'gba',
+  'bin': 'segaMD', 'md': 'segaMD', 'gen': 'segaMD',
+  'sms': 'segaMS',
+  'iso': 'psx', 'cue': 'psx', 'pbp': 'psp', 'cso': 'psp',
+  'nds': 'nds',
+  'a26': 'atari2600',
+  'zip': null, '7z': null
+};
+
+const params = new URLSearchParams(window.location.search);
+const type = params.get('type');
+const slug = params.get('slug');
+const system = params.get('system');
+const core = params.get('core');
+const title = params.get('title');
+const consoleName = params.get('console');
+const romUrl = params.get('rom');
+const isUpload = params.get('upload');
+
+// ===== RETRO IFRAME MODE =====
+if (type === 'retro' && slug && system) {
+  const gameTitle = decodeURIComponent(title || 'Game');
+  const consoleDisplay = CONSOLE_NAMES[consoleName] || CONSOLE_NAMES[system] || system;
+
+  document.getElementById('titleBar').style.display = 'flex';
+  document.getElementById('gameTitle').textContent = gameTitle;
+  document.getElementById('consoleTag').textContent = consoleDisplay;
+  document.title = gameTitle + ' — ElGrande';
+
+  document.getElementById('iframeWrap').style.display = 'block';
+  document.getElementById('serverBar').style.display = 'flex';
+
+  const rgcPath = SYSTEM_TO_RGC[system] || SYSTEM_TO_RGC[consoleName] || 'nes-games';
+  const decodedSlug = decodeURIComponent(slug);
+
+  // Server URLs
+  const servers = [
+    'https://www.retrogames.cc/' + rgcPath + '/' + decodedSlug + '.html',
+    'https://arcadespot.com/game/' + decodedSlug.replace(/-usa-.*$/, '').replace(/-world-.*$/, '').replace(/-europe-.*$/, '') + '/',
+    'https://www.retrogames.onl/'
+  ];
+
+  let currentServer = 0;
+
+  function loadServer(idx) {
+    currentServer = idx;
+    const container = document.getElementById('iframeContainer');
+    const loading = document.getElementById('iframeLoading');
+
+    // Remove old iframe
+    const oldIframe = container.querySelector('iframe');
+    if (oldIframe) oldIframe.remove();
+
+    // Show loading
+    loading.classList.remove('hidden');
+
+    // Create new iframe
+    const iframe = document.createElement('iframe');
+    iframe.src = servers[idx];
+    iframe.allow = 'autoplay; fullscreen; gamepad';
+    iframe.allowFullscreen = true;
+    iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-popups allow-forms allow-modals');
+    iframe.style.width = '100%';
+    iframe.style.height = '100%';
+    iframe.style.border = 'none';
+
+    iframe.addEventListener('load', () => {
+      setTimeout(() => loading.classList.add('hidden'), 500);
+    });
+
+    // Timeout fallback - hide loading after 8 seconds regardless
+    setTimeout(() => loading.classList.add('hidden'), 8000);
+
+    container.appendChild(iframe);
+
+    // Update active button
+    document.querySelectorAll('.server-btn[data-server]').forEach(btn => btn.classList.remove('active'));
+    const activeBtn = document.querySelector('.server-btn[data-server="' + (idx + 1) + '"]');
+    if (activeBtn) activeBtn.classList.add('active');
+  }
+
+  // Load first server immediately
+  loadServer(0);
+
+  // Server button click handlers
+  document.querySelectorAll('.server-btn[data-server]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.dataset.server) - 1;
+      if (idx !== currentServer) loadServer(idx);
+    });
+  });
+
+  // Fullscreen button
+  document.getElementById('fullscreenBtn').addEventListener('click', () => {
+    const container = document.getElementById('iframeContainer');
+    const iframe = container.querySelector('iframe');
+    const el = iframe || container;
+    if (el.requestFullscreen) el.requestFullscreen();
+    else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+  });
+
+  // Upload ROM fallback button
+  document.getElementById('showUploadBtn').addEventListener('click', () => {
+    document.getElementById('iframeWrap').style.display = 'none';
+    document.getElementById('serverBar').style.display = 'none';
+    document.getElementById('uploadSection').style.display = 'block';
+    document.getElementById('uploadSection').classList.add('compact');
+    document.getElementById('gameUploadInfo').style.display = 'block';
+    document.getElementById('uploadGameTitle').textContent = gameTitle;
+    document.getElementById('uploadConsoleTag').textContent = consoleDisplay;
+    document.getElementById('uploadHeading').textContent = 'Upload ROM for ' + gameTitle;
+    document.getElementById('uploadDesc').innerHTML = 'If the streaming servers aren\'t working, upload your own ROM file.';
+
+    // Pre-select the core
+    const coreVal = core || system;
+    const coreSelectEl = document.getElementById('coreSelect');
+    for (let i = 0; i < coreSelectEl.options.length; i++) {
+      if (coreSelectEl.options[i].value === coreVal) {
+        coreSelectEl.selectedIndex = i;
+        break;
+      }
+    }
+  });
+
+  // Ad shield - intercept popup attempts
+  // Block window.open and popunders
+  const adShield = document.getElementById('adShield');
+  const adShieldClose = document.getElementById('adShieldClose');
+
+  adShieldClose.addEventListener('click', () => {
+    adShield.classList.remove('active');
+  });
+
+  // Detect popup attempts via blur
+  let lastFocusTime = Date.now();
+  window.addEventListener('blur', () => {
+    if (Date.now() - lastFocusTime < 1000) {
+      // Rapid blur = likely popup
+      window.focus();
+    }
+    lastFocusTime = Date.now();
+  });
+
+} else if (romUrl && core) {
+  // ===== DIRECT ROM URL MODE =====
+  document.getElementById('emulatorWrap').style.display = 'block';
+  document.getElementById('titleBar').style.display = 'flex';
+  document.getElementById('gameTitle').textContent = decodeURIComponent(title || 'Unknown Game');
+  document.getElementById('consoleTag').textContent = CONSOLE_NAMES[consoleName] || CONSOLE_NAMES[core] || core;
+  document.title = (decodeURIComponent(title || 'Play')) + ' — ElGrande';
+
+  window.EJS_player = '#game';
+  window.EJS_gameUrl = decodeURIComponent(romUrl);
+  window.EJS_core = core;
+  window.EJS_pathtodata = 'https://cdn.emulatorjs.org/v4.0.12/data/';
+  window.EJS_color = '#0066ff';
+  window.EJS_startOnLoaded = true;
+
+  const script = document.createElement('script');
+  script.src = 'https://cdn.emulatorjs.org/v4.0.12/data/loader.js';
+  document.body.appendChild(script);
+
+} else if (core && title && !isUpload) {
+  // ===== GAME SELECTED, NO SLUG — show upload =====
+  const gameTitle = decodeURIComponent(title);
+  const consoleDisplay = CONSOLE_NAMES[consoleName] || CONSOLE_NAMES[core] || core;
+
+  document.getElementById('uploadSection').style.display = 'block';
+  document.getElementById('gameUploadInfo').style.display = 'block';
+  document.getElementById('uploadGameTitle').textContent = gameTitle;
+  document.getElementById('uploadConsoleTag').textContent = consoleDisplay;
+  document.getElementById('uploadHeading').textContent = 'Upload your ' + consoleDisplay + ' ROM to play ' + gameTitle;
+  document.getElementById('uploadDesc').innerHTML = 'Drag and drop your <strong>' + gameTitle + '</strong> ROM file here, or click to browse.';
+  document.title = gameTitle + ' — ElGrande';
+
+  const coreSelectEl = document.getElementById('coreSelect');
+  if (coreSelectEl) {
+    for (let i = 0; i < coreSelectEl.options.length; i++) {
+      if (coreSelectEl.options[i].value === core) {
+        coreSelectEl.selectedIndex = i;
+        break;
+      }
+    }
+  }
+} else {
+  // ===== GENERIC UPLOAD MODE =====
+  document.getElementById('uploadSection').style.display = 'block';
+  document.title = 'Upload & Play — ElGrande';
+}
+
+// ===== UPLOAD HANDLING =====
+const uploadZone = document.getElementById('uploadZone');
+const romFileInput = document.getElementById('romFile');
+const coreSelectWrap = document.getElementById('coreSelectWrap');
+const coreSelect = document.getElementById('coreSelect');
+
+if (uploadZone) {
+  uploadZone.addEventListener('click', () => romFileInput.click());
+
+  uploadZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadZone.classList.add('dragover');
+  });
+
+  uploadZone.addEventListener('dragleave', () => {
+    uploadZone.classList.remove('dragover');
+  });
+
+  uploadZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadZone.classList.remove('dragover');
+    if (e.dataTransfer.files.length > 0) handleFile(e.dataTransfer.files[0]);
+  });
+
+  romFileInput.addEventListener('change', () => {
+    if (romFileInput.files.length > 0) handleFile(romFileInput.files[0]);
+  });
+}
+
+function handleFile(file) {
+  const ext = file.name.split('.').pop().toLowerCase();
+  let detectedCore = core || EXT_TO_CORE[ext] || null;
+
+  if (coreSelect && coreSelect.value) detectedCore = coreSelect.value;
+
+  if (!detectedCore) {
+    coreSelectWrap.classList.add('visible');
+    coreSelectWrap.scrollIntoView({ behavior: 'smooth' });
+    coreSelect.onchange = () => {
+      if (coreSelect.value) launchLocalROM(file, coreSelect.value);
+    };
+  } else {
+    launchLocalROM(file, detectedCore);
+  }
+}
+
+function launchLocalROM(file, selectedCore) {
+  const blobUrl = URL.createObjectURL(file);
+  const gameName = (title ? decodeURIComponent(title) : file.name.replace(/\.[^.]+$/, ''));
+  const consoleDisplay = CONSOLE_NAMES[consoleName] || CONSOLE_NAMES[selectedCore] || selectedCore;
+
+  document.getElementById('uploadSection').style.display = 'none';
+  document.getElementById('iframeWrap') && (document.getElementById('iframeWrap').style.display = 'none');
+  document.getElementById('serverBar') && (document.getElementById('serverBar').style.display = 'none');
+  coreSelectWrap.classList.remove('visible');
+  document.getElementById('emulatorWrap').style.display = 'block';
+  document.getElementById('titleBar').style.display = 'flex';
+  document.getElementById('gameTitle').textContent = gameName;
+  document.getElementById('consoleTag').textContent = consoleDisplay;
+  document.title = gameName + ' — ElGrande';
+
+  window.EJS_player = '#game';
+  window.EJS_gameUrl = blobUrl;
+  window.EJS_core = selectedCore;
+  window.EJS_pathtodata = 'https://cdn.emulatorjs.org/v4.0.12/data/';
+  window.EJS_color = '#0066ff';
+  window.EJS_startOnLoaded = true;
+
+  const script = document.createElement('script');
+  script.src = 'https://cdn.emulatorjs.org/v4.0.12/data/loader.js';
+  document.body.appendChild(script);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ElGrande — Stream Anything Free</title>
+  <meta name="description" content="Stream thousands of movies and TV shows for free on ElGrande. No signup required.">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-gradient" id="navbar">
+  <div class="navbar-left">
+    <a href="index.html" class="logo">ElGrande</a>
+    <ul class="nav-links">
+      <li><a href="index.html" class="active">Home</a></li>
+      <li><a href="tv.html">TV Shows</a></li>
+      <li><a href="movies.html">Movies</a></li>
+      <li><a href="games.html">Games</a></li>
+      <li><a href="pc-games.html">PC Games</a></li>
+      <li><a href="movies.html?genre=28">New &amp; Popular</a></li>
+    </ul>
+    <span class="tagline">Stream Everything. Free.</span>
+  </div>
+  <div class="navbar-right">
+    <button class="search-btn" id="searchToggle" title="Search">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
+    </button>
+    <button class="nav-icon-btn" title="Notifications">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"/></svg>
+      <span class="notification-dot"></span>
+    </button>
+    <div class="profile-avatar" title="ElGrande">G</div>
+  </div>
+</nav>
+
+<!-- SEARCH OVERLAY -->
+<div class="search-overlay" id="searchOverlay">
+  <button class="search-close" id="searchClose">&#10005;</button>
+  <div class="search-box">
+    <span class="search-icon-inside">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
+    </span>
+    <input type="text" id="searchInput" placeholder="Titles, people, genres" autocomplete="off" autofocus>
+  </div>
+  <div class="search-results-grid" id="searchResults"></div>
+</div>
+
+<!-- HERO / BILLBOARD -->
+<section class="hero" id="hero">
+  <div class="hero-bg" id="heroBg"></div>
+  <div class="hero-content" id="heroContent">
+    <div class="skeleton" style="width:80px;height:20px;border-radius:3px;margin-bottom:16px;"></div>
+    <div class="skeleton" style="width:400px;max-width:90%;height:48px;border-radius:4px;margin-bottom:14px;"></div>
+    <div class="skeleton" style="width:300px;max-width:80%;height:14px;border-radius:3px;margin-bottom:6px;"></div>
+    <div class="skeleton" style="width:250px;max-width:70%;height:14px;border-radius:3px;margin-bottom:24px;"></div>
+    <div style="display:flex;gap:10px;">
+      <div class="skeleton" style="width:110px;height:40px;border-radius:4px;"></div>
+      <div class="skeleton" style="width:130px;height:40px;border-radius:4px;"></div>
+    </div>
+  </div>
+  <div class="hero-indicators" id="heroIndicators"></div>
+</section>
+
+<!-- MAIN CONTENT -->
+<main id="mainContent">
+  <!-- Sections injected by JS -->
+</main>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal"></div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-social">
+    <a href="#" title="Facebook">&#xf09a;</a>
+    <a href="#" title="Instagram">&#xf16d;</a>
+    <a href="#" title="Twitter">&#xf099;</a>
+    <a href="#" title="YouTube">&#xf167;</a>
+  </div>
+  <div class="footer-links">
+    <a href="#">Audio Description</a>
+    <a href="#">Help Centre</a>
+    <a href="#">Gift Cards</a>
+    <a href="#">Media Centre</a>
+    <a href="#">Investor Relations</a>
+    <a href="#">Jobs</a>
+    <a href="#">Terms of Use</a>
+    <a href="#">Privacy</a>
+    <a href="#">Legal Notices</a>
+    <a href="#">Cookie Preferences</a>
+    <a href="#">Corporate Information</a>
+    <a href="#">Contact Us</a>
+  </div>
+  <button class="footer-service-code">Service Code</button>
+  <div class="footer-bottom">
+    <p>&copy; 2025 ElGrande. Movie data provided by TMDB.</p>
+  </div>
+</footer>
+
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/ui.js"></script>
+<script>
+// ===== HERO =====
+const heroMovies = [];
+let heroIndex = 0;
+let heroTimer = null;
+
+async function loadHero() {
+  const data = await API.trending();
+  if (!data || !data.results) return;
+
+  const streamable = data.results.slice(0, 5);
+  if (streamable.length === 0) return;
+
+  heroMovies.push(...streamable);
+  renderHeroIndicators();
+  setHero(0);
+  startHeroTimer();
+}
+
+function setHero(index) {
+  heroIndex = index;
+  const movie = heroMovies[index];
+  if (!movie) return;
+
+  const bg = document.getElementById('heroBg');
+  const content = document.getElementById('heroContent');
+  const backdropUrl = API.backdrop(movie.backdrop_path || movie.poster_path, 'original');
+  const matchPct = Math.round((movie.vote_average || 0) * 10);
+  const year = API.getYear(movie.release_date);
+  const genres = API.genreNames(movie.genre_ids || []);
+
+  bg.style.backgroundImage = `url(${backdropUrl})`;
+
+  // Generate a maturity rating from genre
+  const maturityRating = getMaturityRating(movie.genre_ids || []);
+
+  content.innerHTML = `
+    <div class="hero-badge">
+      <span class="hero-badge-icon">N</span> S E R I E S
+    </div>
+    <h1 class="hero-title">${movie.title || 'Unknown Title'}</h1>
+    <div class="hero-meta">
+      <span class="hero-match">${matchPct}% Match</span>
+      <span class="hero-year">${year}</span>
+      <span class="maturity-badge">${maturityRating}</span>
+      ${genres.slice(0, 2).map(g => `<span style="color:#bcbcbc;">${g}</span>`).join('<span style="color:#555;"> &bull; </span>')}
+    </div>
+    <p class="hero-description">${movie.overview || ''}</p>
+    <div class="hero-buttons">
+      <a href="watch.html?id=${movie.id}" class="btn btn-play">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="#111"><polygon points="4,2 20,12 4,22"/></svg>
+        Play
+      </a>
+      <button class="btn btn-info" onclick="Modal.open(${movie.id})">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><line x1="12" y1="16" x2="12" y2="12" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="8" r="1"/></svg>
+        More Info
+      </button>
+    </div>
+  `;
+
+  // Update indicators
+  document.querySelectorAll('.hero-dot').forEach((dot, i) => {
+    dot.classList.toggle('active', i === index);
+  });
+}
+
+function getMaturityRating(genreIds) {
+  if (genreIds.includes(27) || genreIds.includes(53)) return 'TV-MA';
+  if (genreIds.includes(10751) || genreIds.includes(16)) return 'PG';
+  if (genreIds.includes(28) || genreIds.includes(80)) return 'PG-13';
+  return 'PG-13';
+}
+
+function renderHeroIndicators() {
+  const container = document.getElementById('heroIndicators');
+  container.innerHTML = heroMovies.map((_, i) => `
+    <div class="hero-dot${i === 0 ? ' active' : ''}" onclick="setHero(${i}); resetHeroTimer();"></div>
+  `).join('');
+}
+
+function startHeroTimer() {
+  heroTimer = setInterval(() => {
+    const next = (heroIndex + 1) % heroMovies.length;
+    setHero(next);
+  }, 8000);
+}
+
+function resetHeroTimer() {
+  clearInterval(heroTimer);
+  startHeroTimer();
+}
+
+// ===== SECTIONS =====
+async function loadSections() {
+  const container = document.getElementById('mainContent');
+
+  // Top 10 row
+  await renderTop10(container);
+
+  await UI.renderSection(container, 'Trending Now', () => API.trending(), false);
+  await UI.renderSection(container, 'Popular on ElGrande', () => API.popular(), false);
+  await UI.renderSection(container, 'TV Shows Trending Today', () => API.trendingTV().then(d => { if(d&&d.results) d.results.forEach(r=>r.media_type='tv'); return d; }), false);
+  await UI.renderSection(container, 'Top Rated', () => API.topRated(), false);
+  await UI.renderSection(container, 'New Releases', () => API.recentlyStreaming(), true);
+  await UI.renderSection(container, 'Popular TV Shows', () => API.popularTV().then(d => { if(d&&d.results) d.results.forEach(r=>r.media_type='tv'); return d; }), false);
+  await UI.renderSection(container, 'Action & Adventure', () => API.byGenre(28), false);
+  await UI.renderSection(container, 'Suspenseful Horror', () => API.byGenre(27), false);
+  await UI.renderSection(container, 'Top Rated TV', () => API.topRatedTV().then(d => { if(d&&d.results) d.results.forEach(r=>r.media_type='tv'); return d; }), false);
+  await UI.renderSection(container, 'Sci-Fi & Fantasy', () => API.byGenre(878), false);
+  await UI.renderSection(container, 'Comedies', () => API.byGenre(35), false);
+  await UI.renderSection(container, 'Romantic Favourites', () => API.byGenre(10749), false);
+  await UI.renderSection(container, 'Dramas', () => API.byGenre(18), false);
+  await UI.renderSection(container, 'Edge-of-Your-Seat Thrillers', () => API.byGenre(53), false);
+
+  // Slapstick & Stupid Funny — curated list of classic comedy films
+  await UI.renderSection(container, 'Stupid Funny & Slapstick', () => API.discover({
+    with_genres: '35',
+    with_keywords: '9673|5765|245863',
+    sort_by: 'vote_count.desc',
+    'vote_average.gte': 5.5
+  }), false);
+
+  // Spoof & Parody Movies
+  await UI.renderSection(container, 'Spoofs & Parody Movies', () => API.discover({
+    with_genres: '35',
+    with_keywords: '9823|3505',
+    sort_by: 'vote_count.desc'
+  }), false);
+}
+
+// ===== TOP 10 ROW =====
+async function renderTop10(container) {
+  const section = document.createElement('div');
+  section.className = 'section';
+  section.innerHTML = `
+    <div class="section-title">Top 10 in the US Today</div>
+    <div class="carousel-wrapper">
+      <button class="carousel-btn prev">&lsaquo;</button>
+      <div class="carousel" id="top10Carousel">
+        ${Array.from({length: 6}, () => '<div class="skeleton" style="width:180px;height:250px;border-radius:4px;flex-shrink:0;"></div>').join('')}
+      </div>
+      <button class="carousel-btn next">&rsaquo;</button>
+    </div>
+  `;
+  container.appendChild(section);
+  UI.setupCarousel(section.querySelector('.carousel-wrapper'));
+
+  const data = await API.trending();
+  const carousel = document.getElementById('top10Carousel');
+  carousel.innerHTML = '';
+
+  if (data && data.results) {
+    data.results.slice(0, 10).forEach((movie, idx) => {
+      const el = document.createElement('div');
+      el.className = 'top10-card';
+      el.innerHTML = `
+        <span class="top10-rank">${idx + 1}</span>
+        <img src="${API.img(movie.poster_path, 'w342')}" alt="${movie.title || movie.name || ''}" loading="lazy"
+             onerror="this.src='https://via.placeholder.com/342x513/1a1a1a/555?text=No+Image'">
+      `;
+      el.addEventListener('click', () => Modal.open(movie.id));
+      carousel.appendChild(el);
+    });
+  }
+}
+
+// ===== SEARCH =====
+let searchTimer = null;
+
+document.getElementById('searchToggle').addEventListener('click', () => {
+  document.getElementById('searchOverlay').classList.add('active');
+  document.getElementById('searchInput').focus();
+});
+
+document.getElementById('searchClose').addEventListener('click', () => {
+  document.getElementById('searchOverlay').classList.remove('active');
+});
+
+document.getElementById('searchInput').addEventListener('input', (e) => {
+  clearTimeout(searchTimer);
+  const q = e.target.value.trim();
+  if (!q) {
+    document.getElementById('searchResults').innerHTML = '';
+    return;
+  }
+  searchTimer = setTimeout(() => doSearch(q), 400);
+});
+
+async function doSearch(query) {
+  const container = document.getElementById('searchResults');
+  container.innerHTML = '<div class="spinner" style="margin:20px auto;grid-column:1/-1;"></div>';
+
+  const data = await API.searchMulti(query);
+  container.innerHTML = '';
+
+  if (!data || !data.results || data.results.length === 0) {
+    container.innerHTML = '<p style="color:#999;text-align:center;grid-column:1/-1;padding:20px;">No results found.</p>';
+    return;
+  }
+
+  data.results.slice(0, 18).forEach(item => {
+    container.appendChild(UI.card(item));
+  });
+}
+
+// Keyboard shortcut: / to open search
+document.addEventListener('keydown', (e) => {
+  if (e.key === '/' && !e.target.matches('input, textarea')) {
+    e.preventDefault();
+    document.getElementById('searchOverlay').classList.add('active');
+    document.getElementById('searchInput').focus();
+  }
+});
+
+// ===== INIT =====
+UI.initNavbar();
+Modal.init();
+loadHero();
+loadSections();
+</script>
+</body>
+</html>

@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ElGrande Player</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; background: #000; overflow: hidden; }
+    #player { width: 100%; height: 100%; position: relative; }
+    #player iframe { width: 100%; height: 100%; border: none; display: block; }
+    #servers {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: linear-gradient(transparent, rgba(0,0,0,0.95));
+      padding: 12px 16px; display: flex; gap: 8px; align-items: center;
+      z-index: 10000; flex-wrap: wrap;
+      transition: opacity 0.3s;
+    }
+    #servers span { color: #aaa; font-size: 13px; font-family: sans-serif; }
+    .srv-btn {
+      background: rgba(255,255,255,0.15); border: none; color: white;
+      padding: 6px 16px; border-radius: 6px; cursor: pointer;
+      font-size: 13px; font-family: sans-serif;
+    }
+    .srv-btn.active { background: #0066ff; }
+    .srv-btn:hover { background: rgba(255,255,255,0.3); }
+    .srv-btn.active:hover { background: #0052cc; }
+    .fs-btn {
+      background: rgba(255,255,255,0.15); border: none; color: white;
+      padding: 6px 14px; border-radius: 6px; cursor: pointer;
+      font-size: 13px; font-family: sans-serif; display: flex;
+      align-items: center; gap: 5px; margin-left: auto;
+    }
+    .fs-btn:hover { background: rgba(255,255,255,0.3); }
+    .fs-btn svg { width: 14px; height: 14px; fill: white; }
+
+    /* Mobile optimization */
+    @media (max-width: 768px) {
+      #servers {
+        padding: 8px 10px;
+        gap: 5px;
+        background: rgba(0,0,0,0.97);
+      }
+      .srv-btn { padding: 8px 14px; font-size: 14px; min-height: 36px; }
+      .fs-btn { padding: 8px 12px; font-size: 13px; min-height: 36px; }
+      #servers span { font-size: 12px; }
+    }
+
+    /* Ad tip banner on mobile */
+    .ad-tip {
+      position: fixed; top: 0; left: 0; right: 0;
+      background: rgba(0,102,255,0.95); color: white;
+      text-align: center; padding: 8px 40px 8px 12px;
+      font-size: 12px; font-family: sans-serif;
+      z-index: 10001; display: none;
+    }
+    .ad-tip .close-tip {
+      position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; color: white; font-size: 18px; cursor: pointer;
+    }
+    @media (max-width: 768px) {
+      .ad-tip { display: block; }
+    }
+
+    /* Hide server bar in fullscreen */
+    :fullscreen #servers { opacity: 0; pointer-events: none; }
+    :-webkit-full-screen #servers { opacity: 0; pointer-events: none; }
+    :fullscreen .ad-tip { display: none; }
+    :-webkit-full-screen .ad-tip { display: none; }
+  </style>
+</head>
+<body>
+<div class="ad-tip" id="adTip">
+  On mobile? Server 1 works best. Tap other servers if it doesn't load.
+  <button class="close-tip" onclick="document.getElementById('adTip').style.display='none'">✕</button>
+</div>
+<div id="player"></div>
+<div id="shield" style="position:fixed;top:0;left:0;right:0;bottom:60px;z-index:9998;cursor:pointer;background:transparent;" onclick="this.style.display='none';setTimeout(function(){document.getElementById('shield').style.display='block'},3000)"></div>
+<div id="servers"></div>
+
+<script>
+// =============================================
+// AD SHIELD — blocks popups, redirects, overlays
+// =============================================
+
+// Block popups aggressively
+window.open = function() { return null; };
+setInterval(function() { try { window.open = function() { return null; }; } catch(e){} }, 100);
+
+// Block focus stealing
+window.addEventListener('blur', function() { setTimeout(function() { window.focus(); }, 50); });
+
+// Block redirects
+var safeHref = window.location.href;
+setInterval(function() {
+  if (window.location.href !== safeHref) window.location.href = safeHref;
+}, 200);
+window.addEventListener('beforeunload', function(e) { e.preventDefault(); e.returnValue = ''; });
+
+// Block new tab/window via click hijacking
+document.addEventListener('click', function(e) {
+  var t = e.target;
+  // Allow clicks on our own UI elements
+  if (t.closest('#servers') || t.closest('#shield') || t.id === 'fsBtn') return;
+  // Allow clicks on the iframe itself (for play buttons etc)
+  if (t.tagName === 'IFRAME') return;
+  // Block everything else that tries to navigate away
+  var link = t.closest('a');
+  if (link && link.target === '_blank') { e.preventDefault(); e.stopPropagation(); return false; }
+}, true);
+
+// Block ad overlay divs injected into the page
+setInterval(function() {
+  var dominated = document.querySelectorAll('div[style*="z-index"]');
+  dominated.forEach(function(el) {
+    if (el.id === 'shield' || el.id === 'servers' || el.id === 'player') return;
+    var z = parseInt(window.getComputedStyle(el).zIndex);
+    if (z > 100 && el.parentElement === document.body) {
+      el.remove();
+    }
+  });
+  // Remove any injected iframes that aren't our player
+  var iframes = document.querySelectorAll('iframe');
+  iframes.forEach(function(f) {
+    if (!f.closest('#player')) f.remove();
+  });
+  // Remove any injected scripts from ad networks
+  var scripts = document.querySelectorAll('script[src*="pop"], script[src*="ads"], script[src*="track"]');
+  scripts.forEach(function(s) { s.remove(); });
+}, 500);
+
+// Block notification/permission requests
+if (window.Notification) { window.Notification.requestPermission = function() { return Promise.resolve('denied'); }; }
+
+// Nuke alert/confirm/prompt (ads sometimes use these)
+window.alert = function() {};
+window.confirm = function() { return false; };
+window.prompt = function() { return null; };
+
+// Block touch-based ad hijacking (mobile)
+document.addEventListener('touchstart', function(e) {
+  var t = e.target;
+  if (t.closest('#servers') || t.closest('#shield') || t.closest('#adTip')) return;
+  if (t.tagName === 'IFRAME') return;
+  var link = t.closest('a');
+  if (link && (link.target === '_blank' || link.href.indexOf(window.location.hostname) === -1)) {
+    e.preventDefault(); e.stopPropagation(); return false;
+  }
+}, true);
+
+// Block Notification API completely (VPN/ad notifications)
+try {
+  Object.defineProperty(window, 'Notification', {
+    value: { requestPermission: function() { return Promise.resolve('denied'); }, permission: 'denied' },
+    writable: false, configurable: false
+  });
+} catch(e) {}
+
+// Block service worker registration (ad networks use these for push notifications)
+if (navigator.serviceWorker) {
+  navigator.serviceWorker.register = function() { return Promise.reject('blocked'); };
+}
+
+// Block Push API
+if (window.PushManager) {
+  PushManager.prototype.subscribe = function() { return Promise.reject('blocked'); };
+}
+
+// Auto-dismiss the ad tip after 5 seconds
+setTimeout(function() {
+  var tip = document.getElementById('adTip');
+  if (tip) tip.style.display = 'none';
+}, 5000);
+
+// =============================================
+// FULLSCREEN
+// =============================================
+function toggleFullscreen() {
+  if (document.fullscreenElement || document.webkitFullscreenElement) {
+    if (document.exitFullscreen) document.exitFullscreen();
+    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+  } else {
+    var el = document.documentElement;
+    if (el.requestFullscreen) el.requestFullscreen();
+    else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+  }
+}
+
+// Hide/show server bar on fullscreen change
+document.addEventListener('fullscreenchange', updateFsBtn);
+document.addEventListener('webkitfullscreenchange', updateFsBtn);
+
+function updateFsBtn() {
+  var isFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
+  var btn = document.getElementById('fsBtn');
+  if (btn) btn.innerHTML = isFs
+    ? '<svg viewBox="0 0 24 24"><path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/></svg> Exit'
+    : '<svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg> Fullscreen';
+  // Show/hide server bar
+  var servers = document.getElementById('servers');
+  if (servers) servers.style.opacity = isFs ? '0' : '1';
+}
+
+// Keyboard shortcut
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'f' && e.target.tagName !== 'INPUT') toggleFullscreen();
+});
+
+// =============================================
+// PLAYER
+// =============================================
+var params = new URLSearchParams(window.location.search);
+var movieId = params.get('id');
+var serverIdx = parseInt(params.get('s') || '0');
+var mediaType = params.get('type') || 'movie';
+var season = params.get('season') || '1';
+var episode = params.get('episode') || '1';
+
+// Detect mobile
+var isMobile = /iPhone|iPad|iPod|Android|Mobile/i.test(navigator.userAgent);
+
+// Mobile-optimized order: vidlink.pro first (works on mobile)
+var MOVIE_SERVERS = isMobile ? [
+  function(id) { return 'https://vidlink.pro/movie/' + id; },
+  function(id) { return 'https://vidsrc.cc/v2/embed/movie/' + id; },
+  function(id) { return 'https://multiembed.mov/?video_id=' + id + '&tmdb=1'; },
+  function(id) { return 'https://moviesapi.club/movie/' + id; },
+  function(id) { return 'https://player.videasy.net/movie/' + id; },
+  function(id) { return 'https://embed.su/embed/movie/' + id; },
+  function(id) { return 'https://autoembed.co/movie/tmdb/' + id; },
+  function(id) { return 'https://www.2embed.cc/embed/' + id; },
+] : [
+  function(id) { return 'https://player.videasy.net/movie/' + id; },
+  function(id) { return 'https://embed.su/embed/movie/' + id; },
+  function(id) { return 'https://multiembed.mov/?video_id=' + id + '&tmdb=1'; },
+  function(id) { return 'https://autoembed.co/movie/tmdb/' + id; },
+  function(id) { return 'https://vidlink.pro/movie/' + id; },
+  function(id) { return 'https://www.2embed.cc/embed/' + id; },
+  function(id) { return 'https://vidsrc.cc/v2/embed/movie/' + id; },
+  function(id) { return 'https://moviesapi.club/movie/' + id; },
+];
+
+var TV_SERVERS = isMobile ? [
+  function(id, s, e) { return 'https://vidlink.pro/tv/' + id + '/' + s + '/' + e; },
+  function(id, s, e) { return 'https://vidsrc.cc/v2/embed/tv/' + id + '/' + s + '/' + e; },
+  function(id, s, e) { return 'https://multiembed.mov/?video_id=' + id + '&tmdb=1&s=' + s + '&e=' + e; },
+  function(id, s, e) { return 'https://player.videasy.net/tv/' + id + '/' + s + '/' + e; },
+  function(id, s, e) { return 'https://embed.su/embed/tv/' + id + '/' + s + '/' + e; },
+  function(id, s, e) { return 'https://autoembed.co/tv/tmdb/' + id + '-' + s + '-' + e; },
+] : [
+  function(id, s, e) { return 'https://player.videasy.net/tv/' + id + '/' + s + '/' + e; },
+  function(id, s, e) { return 'https://embed.su/embed/tv/' + id + '/' + s + '/' + e; },
+  function(id, s, e) { return 'https://multiembed.mov/?video_id=' + id + '&tmdb=1&s=' + s + '&e=' + e; },
+  function(id, s, e) { return 'https://autoembed.co/tv/tmdb/' + id + '-' + s + '-' + e; },
+  function(id, s, e) { return 'https://vidlink.pro/tv/' + id + '/' + s + '/' + e; },
+  function(id, s, e) { return 'https://vidsrc.cc/v2/embed/tv/' + id + '/' + s + '/' + e; },
+  function(id, s, e) { return 'https://moviesapi.club/tv/' + id + '-' + s + '-' + e; },
+  function(id, s, e) { return 'https://vidsrc.me/embed/tv/' + id + '/' + s + '/' + e; },
+];
+
+var SERVERS = mediaType === 'tv' ? TV_SERVERS : MOVIE_SERVERS;
+
+function loadServer(idx) {
+  if (!movieId || idx >= SERVERS.length) return;
+  var url = mediaType === 'tv' ? SERVERS[idx](movieId, season, episode) : SERVERS[idx](movieId);
+  document.getElementById('player').innerHTML = '<iframe src="' + url + '" allowfullscreen allow="autoplay; fullscreen; encrypted-media; picture-in-picture"></iframe>';
+  renderServers(idx);
+}
+
+function renderServers(active) {
+  var el = document.getElementById('servers');
+  var html = '<span>Server:</span>';
+  for (var i = 0; i < SERVERS.length; i++) {
+    html += '<button class="srv-btn ' + (i===active?'active':'') + '" onclick="loadServer(' + i + ')">' + (i+1) + '</button>';
+  }
+  html += '<button class="fs-btn" onclick="window.location.href=\'index.html\'"><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg> Home</button>';
+  html += '<button class="fs-btn" id="fsBtn" onclick="toggleFullscreen()"><svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg> Fullscreen</button>';
+  el.innerHTML = html;
+}
+
+loadServer(serverIdx);
+</script>
+</body>
+</html>

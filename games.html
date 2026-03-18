@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Retro Games — ElGrande</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
+  <style>
+    .games-hero {
+      position: relative;
+      padding: 120px 4% 60px;
+      background: linear-gradient(135deg, #0a0a2e 0%, #1a0a2e 30%, #2d1b4e 60%, #0a0a2e 100%);
+      overflow: hidden;
+      margin-bottom: 0;
+    }
+    .games-hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 20% 50%, rgba(0,102,255,0.15) 0%, transparent 50%),
+        radial-gradient(circle at 80% 30%, rgba(88,28,135,0.2) 0%, transparent 50%);
+    }
+    .games-hero::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 120px;
+      background: linear-gradient(transparent, var(--dark));
+    }
+    .games-hero-content {
+      position: relative;
+      z-index: 2;
+      max-width: 700px;
+    }
+    .games-hero h1 {
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 900;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, #fff 0%, #0066ff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .games-hero p {
+      color: #b3b3b3;
+      font-size: 1.1rem;
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+    .games-hero .console-icons {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .games-hero .console-icon {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      color: #ddd;
+      backdrop-filter: blur(4px);
+    }
+
+    /* Search & Filters */
+    .games-toolbar {
+      position: sticky;
+      top: 68px;
+      background: rgba(20,20,20,0.97);
+      backdrop-filter: blur(10px);
+      z-index: 100;
+      padding: 14px 4%;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .games-search-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .games-search {
+      flex: 1;
+      max-width: 400px;
+      position: relative;
+    }
+    .games-search input {
+      width: 100%;
+      padding: 10px 16px 10px 42px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 4px;
+      color: #fff;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+      font-family: inherit;
+    }
+    .games-search input:focus {
+      border-color: var(--red);
+    }
+    .games-search input::placeholder { color: #777; }
+    .games-search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #777;
+    }
+    .games-count {
+      color: #777;
+      font-size: 0.85rem;
+      white-space: nowrap;
+    }
+
+    .console-filters {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      padding-bottom: 2px;
+    }
+    .console-filters::-webkit-scrollbar { display: none; }
+    .console-pill {
+      padding: 6px 16px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.2);
+      font-size: 0.78rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: #ddd;
+      background: transparent;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .console-pill:hover {
+      border-color: rgba(255,255,255,0.5);
+      background: rgba(255,255,255,0.05);
+    }
+    .console-pill.active {
+      background: var(--red);
+      color: #fff;
+      border-color: var(--red);
+    }
+
+    /* Game Grid */
+    .games-grid-container {
+      padding: 24px 4% 60px;
+    }
+    .games-section-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #e5e5e5;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .games-section-title .count-badge {
+      background: var(--red);
+      color: #fff;
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-weight: 600;
+    }
+    .games-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
+      gap: 12px;
+      margin-bottom: 40px;
+    }
+
+    .game-card {
+      background: var(--dark2);
+      border-radius: 6px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.25s, box-shadow 0.25s;
+      position: relative;
+    }
+    .game-card:hover {
+      transform: scale(1.05) translateY(-4px);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+      z-index: 10;
+    }
+    .game-card-img {
+      width: 100%;
+      aspect-ratio: 1/1;
+      object-fit: cover;
+      background: #1a1a2e;
+      display: block;
+    }
+    .game-card-info {
+      padding: 10px 12px 12px;
+    }
+    .game-card-title {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 6px;
+    }
+    .game-card-console {
+      display: inline-block;
+      font-size: 0.65rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    /* Console-specific badge colors */
+    .badge-nes { background: #c0392b; color: #fff; }
+    .badge-snes { background: #8e44ad; color: #fff; }
+    .badge-n64 { background: #2980b9; color: #fff; }
+    .badge-gb { background: #27ae60; color: #fff; }
+    .badge-gbc { background: #16a085; color: #fff; }
+    .badge-gba { background: #2c3e50; color: #fff; }
+    .badge-genesis { background: #2c3e50; color: #fff; }
+    .badge-sms { background: #1abc9c; color: #fff; }
+    .badge-saturn { background: #34495e; color: #fff; }
+    .badge-ps1 { background: #2c3e50; color: #fff; }
+    .badge-ps2 { background: #1a237e; color: #fff; }
+    .badge-psp { background: #283593; color: #fff; }
+    .badge-atari2600 { background: #e67e22; color: #fff; }
+    .badge-neogeo { background: #d35400; color: #fff; }
+    .badge-arcade { background: #e74c3c; color: #fff; }
+    .badge-nds { background: #7f8c8d; color: #fff; }
+
+    .game-card-play {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      width: 50px;
+      height: 50px;
+      background: rgba(0,102,255,0.9);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.25s;
+      pointer-events: none;
+    }
+    .game-card:hover .game-card-play {
+      transform: translate(-50%, -50%) scale(1);
+    }
+    .game-card-play svg {
+      width: 22px;
+      height: 22px;
+      fill: #fff;
+      margin-left: 3px;
+    }
+
+    /* Upload banner */
+    .upload-banner {
+      background: linear-gradient(135deg, rgba(0,102,255,0.1), rgba(88,28,135,0.1));
+      border: 1px dashed rgba(0,102,255,0.3);
+      border-radius: 8px;
+      padding: 30px;
+      text-align: center;
+      margin: 0 4% 40px;
+      cursor: pointer;
+      transition: border-color 0.3s, background 0.3s;
+    }
+    .upload-banner:hover {
+      border-color: var(--red);
+      background: rgba(0,102,255,0.05);
+    }
+    .upload-banner h3 {
+      font-size: 1.1rem;
+      margin-bottom: 8px;
+    }
+    .upload-banner p {
+      color: #888;
+      font-size: 0.85rem;
+    }
+
+    .no-games {
+      text-align: center;
+      padding: 60px 20px;
+      color: #888;
+    }
+    .no-games h3 {
+      color: #fff;
+      margin-bottom: 8px;
+      font-size: 1.3rem;
+    }
+
+    @media (max-width: 600px) {
+      .games-grid {
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 8px;
+      }
+      .games-hero h1 { font-size: 1.8rem; }
+      .games-search-row { flex-direction: column; align-items: stretch; }
+      .games-search { max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-gradient" id="navbar">
+  <div class="navbar-left">
+    <a href="index.html" class="logo">ElGrande</a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="tv.html">TV Shows</a></li>
+      <li><a href="movies.html">Movies</a></li>
+      <li><a href="games.html" class="active">Games</a></li>
+      <li><a href="pc-games.html">PC Games</a></li>
+      <li><a href="movies.html?genre=28">New &amp; Popular</a></li>
+    </ul>
+    <span class="tagline">Stream Everything. Free.</span>
+  </div>
+  <div class="navbar-right">
+    <button class="search-btn" id="searchToggle" title="Search">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
+    </button>
+    <button class="nav-icon-btn" title="Notifications">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"/></svg>
+      <span class="notification-dot"></span>
+    </button>
+    <div class="profile-avatar" title="ElGrande">G</div>
+  </div>
+</nav>
+
+<!-- HERO SECTION -->
+<section class="games-hero">
+  <div class="games-hero-content">
+    <h1>Retro Game Arcade</h1>
+    <p>Play hundreds of classic games from NES, SNES, N64, PlayStation, Sega, Game Boy, and more — right in your browser. No downloads, no installs.</p>
+    <div class="console-icons">
+      <span class="console-icon">NES</span>
+      <span class="console-icon">SNES</span>
+      <span class="console-icon">N64</span>
+      <span class="console-icon">PS1</span>
+      <span class="console-icon">Genesis</span>
+      <span class="console-icon">GBA</span>
+      <span class="console-icon">Arcade</span>
+      <span class="console-icon">+ More</span>
+    </div>
+  </div>
+</section>
+
+<!-- TOOLBAR: Search + Console Filters -->
+<div class="games-toolbar">
+  <div class="games-search-row">
+    <div class="games-search">
+      <span class="games-search-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
+      </span>
+      <input type="text" id="gameSearch" placeholder="Search games..." autocomplete="off">
+    </div>
+    <span class="games-count" id="gamesCount"></span>
+  </div>
+  <div class="console-filters" id="consoleFilters">
+    <button class="console-pill active" data-console="all">All</button>
+    <button class="console-pill" data-console="nes">NES</button>
+    <button class="console-pill" data-console="snes">SNES</button>
+    <button class="console-pill" data-console="n64">N64</button>
+    <button class="console-pill" data-console="gb">Game Boy</button>
+    <button class="console-pill" data-console="gbc">GBC</button>
+    <button class="console-pill" data-console="gba">GBA</button>
+    <button class="console-pill" data-console="genesis">Genesis</button>
+    <button class="console-pill" data-console="sms">Master System</button>
+    <button class="console-pill" data-console="saturn">Saturn</button>
+    <button class="console-pill" data-console="ps1">PS1</button>
+    <button class="console-pill" data-console="psp">PSP</button>
+    <button class="console-pill" data-console="atari2600">Atari 2600</button>
+    <button class="console-pill" data-console="neogeo">Neo Geo</button>
+    <button class="console-pill" data-console="arcade">Arcade</button>
+    <button class="console-pill" data-console="nds">NDS</button>
+  </div>
+</div>
+
+<!-- UPLOAD ROM BANNER -->
+<div class="upload-banner" id="uploadBanner" onclick="window.location='play.html?upload=1'">
+  <h3>Have Your Own ROMs? Upload & Play</h3>
+  <p>Drag and drop or browse for ROM files from your device. Supports .nes, .smc, .z64, .gba, .bin, .iso, .cue and more.</p>
+</div>
+
+<!-- GAMES GRID -->
+<div class="games-grid-container" id="gamesContainer">
+  <!-- Populated by JS -->
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-social">
+    <a href="#" title="Facebook">&#xf09a;</a>
+    <a href="#" title="Instagram">&#xf16d;</a>
+    <a href="#" title="Twitter">&#xf099;</a>
+    <a href="#" title="YouTube">&#xf167;</a>
+  </div>
+  <div class="footer-links">
+    <a href="#">Audio Description</a>
+    <a href="#">Help Centre</a>
+    <a href="#">Gift Cards</a>
+    <a href="#">Media Centre</a>
+    <a href="#">Investor Relations</a>
+    <a href="#">Jobs</a>
+    <a href="#">Terms of Use</a>
+    <a href="#">Privacy</a>
+    <a href="#">Legal Notices</a>
+    <a href="#">Cookie Preferences</a>
+    <a href="#">Corporate Information</a>
+    <a href="#">Contact Us</a>
+  </div>
+  <button class="footer-service-code">Service Code</button>
+  <div class="footer-bottom">
+    <p>&copy; 2025 ElGrande. Retro gaming powered by EmulatorJS.</p>
+  </div>
+</footer>
+
+<script>
+// ===== NAVBAR SCROLL =====
+window.addEventListener('scroll', () => {
+  document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 10);
+});
+
+// ===== GAME LIBRARY =====
+const GAMES = [
+  // ===== NES =====
+  { title:"Super Mario Bros", console:"nes", core:"nes", system:"nes", slug:"super-mario-bros-usa-", img:"https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%20Entertainment%20System/Named_Boxarts/Super%20Mario%20Bros.%20(World).png" },
+  { title: "The Legend of Zelda", console: "nes", core: "nes", system: "nes", slug: "legend-of-zelda-the-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%20Entertainment%20System/Named_Boxarts/Legend%20of%20Zelda%2C%20The%20(USA).png" },
+  { title: "Mega Man 2", console: "nes", core: "nes", system: "nes", slug: "mega-man-2-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%20Entertainment%20System/Named_Boxarts/Mega%20Man%202%20(USA).png" },
+  { title: "Contra", console: "nes", core: "nes", system: "nes", slug: "contra-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%20Entertainment%20System/Named_Boxarts/Contra%20(USA).png" },
+  { title: "Metroid", console: "nes", core: "nes", system: "nes", slug: "metroid-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%20Entertainment%20System/Named_Boxarts/Metroid%20(USA).png" },
+  { title: "Castlevania", console: "nes", core: "nes", system: "nes", slug: "castlevania-usa-europe-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%20Entertainment%20System/Named_Boxarts/Castlevania%20(USA).png" },
+  { title: "Pac-Man", console: "nes", core: "nes", system: "nes", slug: "pac-man-namco-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%20Entertainment%20System/Named_Boxarts/Pac-Man%20(USA)%20(Namco).png" },
+  { title: "Donkey Kong", console: "nes", core: "nes", system: "nes", slug: "donkey-kong-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%20Entertainment%20System/Named_Boxarts/Donkey%20Kong%20(World)%20(Rev%201).png" },
+  { title: "Tetris", console: "nes", core: "nes", system: "nes", slug: "tetris-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%20Entertainment%20System/Named_Boxarts/Tetris%20(USA).png" },
+  { title: "Double Dragon", console: "nes", core: "nes", system: "nes", slug: "double-dragon-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%20Entertainment%20System/Named_Boxarts/Double%20Dragon%20(USA).png" },
+  { title: "Punch-Out!!", console: "nes", core: "nes", system: "nes", slug: "mike-tysons-punch-out-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%20Entertainment%20System/Named_Boxarts/Mike%20Tyson's%20Punch-Out!!%20(USA).png" },
+  { title: "Kirby's Adventure", console: "nes", core: "nes", system: "nes", slug: "kirbys-adventure-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%20Entertainment%20System/Named_Boxarts/Kirby's%20Adventure%20(USA).png" },
+  { title: "Ninja Gaiden", console: "nes", core: "nes", system: "nes", slug: "ninja-gaiden-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%20Entertainment%20System/Named_Boxarts/Ninja%20Gaiden%20(USA).png" },
+  { title: "Final Fantasy", console: "nes", core: "nes", system: "nes", slug: "final-fantasy-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%20Entertainment%20System/Named_Boxarts/Final%20Fantasy%20(USA).png" },
+  { title: "Excitebike", console: "nes", core: "nes", system: "nes", slug: "excitebike-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%20Entertainment%20System/Named_Boxarts/Excitebike%20(USA).png" },
+  { title: "Balloon Fight", console: "nes", core: "nes", system: "nes", slug: "balloon-fight-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%20Entertainment%20System/Named_Boxarts/Balloon%20Fight%20(USA).png" },
+  { title: "Ice Climber", console: "nes", core: "nes", system: "nes", slug: "ice-climber-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%20Entertainment%20System/Named_Boxarts/Ice%20Climber%20(USA%2C%20Europe).png" },
+  { title: "Duck Hunt", console: "nes", core: "nes", system: "nes", slug: "duck-hunt-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%20Entertainment%20System/Named_Boxarts/Duck%20Hunt%20(World).png" },
+  { title: "Galaga", console: "nes", core: "nes", system: "nes", slug: "galaga-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%20Entertainment%20System/Named_Boxarts/Galaga%20-%20Demons%20of%20Death%20(USA).png" },
+  { title: "Bomberman", console: "nes", core: "nes", system: "nes", slug: "bomberman-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%20Entertainment%20System/Named_Boxarts/Bomberman%20(USA).png" },
+  { title: "Mega Man 3", console: "nes", core: "nes", system: "nes", slug: "mega-man-3-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%20Entertainment%20System/Named_Boxarts/Mega%20Man%203%20(USA).png" },
+  { title: "Super Mario Bros. 3", console: "nes", core: "nes", system: "nes", slug: "super-mario-bros-3-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%20Entertainment%20System/Named_Boxarts/Super%20Mario%20Bros.%203%20(USA).png" },
+  { title: "Castlevania III", console: "nes", core: "nes", system: "nes", slug: "castlevania-iii-draculas-curse-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%20Entertainment%20System/Named_Boxarts/Castlevania%20III%20-%20Dracula's%20Curse%20(USA).png" },
+  { title: "River City Ransom", console: "nes", core: "nes", system: "nes", slug: "river-city-ransom-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%20Entertainment%20System/Named_Boxarts/River%20City%20Ransom%20(USA).png" },
+  { title: "Battletoads", console: "nes", core: "nes", system: "nes", slug: "battletoads-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%20Entertainment%20System/Named_Boxarts/Battletoads%20(USA).png" },
+
+  // ===== SNES =====
+  { title: "Super Mario World", console: "snes", core: "snes", system: "snes", slug: "super-mario-world-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Super%20Nintendo%20Entertainment%20System/Named_Boxarts/Super%20Mario%20World%20(USA).png" },
+  { title: "Zelda: A Link to the Past", console: "snes", core: "snes", system: "snes", slug: "legend-of-zelda-the-a-link-to-the-past-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Super%20Nintendo%20Entertainment%20System/Named_Boxarts/Legend%20of%20Zelda%2C%20The%20-%20A%20Link%20to%20the%20Past%20(USA).png" },
+  { title: "Super Metroid", console: "snes", core: "snes", system: "snes", slug: "super-metroid-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Super%20Nintendo%20Entertainment%20System/Named_Boxarts/Super%20Metroid%20(Japan%2C%20USA)%20(En%2CJa).png" },
+  { title: "Chrono Trigger", console: "snes", core: "snes", system: "snes", slug: "chrono-trigger-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Super%20Nintendo%20Entertainment%20System/Named_Boxarts/Chrono%20Trigger%20(USA).png" },
+  { title: "Final Fantasy VI", console: "snes", core: "snes", system: "snes", slug: "final-fantasy-iii-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Super%20Nintendo%20Entertainment%20System/Named_Boxarts/Final%20Fantasy%20III%20(USA).png" },
+  { title: "Donkey Kong Country", console: "snes", core: "snes", system: "snes", slug: "donkey-kong-country-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Super%20Nintendo%20Entertainment%20System/Named_Boxarts/Donkey%20Kong%20Country%20(USA)%20(Rev%202).png" },
+  { title: "Street Fighter II Turbo", console: "snes", core: "snes", system: "snes", slug: "street-fighter-ii-turbo-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Super%20Nintendo%20Entertainment%20System/Named_Boxarts/Street%20Fighter%20II%20Turbo%20-%20Hyper%20Fighting%20(USA).png" },
+  { title: "Mega Man X", console: "snes", core: "snes", system: "snes", slug: "mega-man-x-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Super%20Nintendo%20Entertainment%20System/Named_Boxarts/Mega%20Man%20X%20(USA).png" },
+  { title: "Super Castlevania IV", console: "snes", core: "snes", system: "snes", slug: "super-castlevania-iv-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Super%20Nintendo%20Entertainment%20System/Named_Boxarts/Super%20Castlevania%20IV%20(USA).png" },
+  { title: "EarthBound", console: "snes", core: "snes", system: "snes", slug: "earthbound-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Super%20Nintendo%20Entertainment%20System/Named_Boxarts/EarthBound%20(USA).png" },
+  { title: "F-Zero", console: "snes", core: "snes", system: "snes", slug: "f-zero-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Super%20Nintendo%20Entertainment%20System/Named_Boxarts/F-Zero%20(USA).png" },
+  { title: "Star Fox", console: "snes", core: "snes", system: "snes", slug: "star-fox-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Super%20Nintendo%20Entertainment%20System/Named_Boxarts/Star%20Fox%20(USA)%20(Rev%201).png" },
+  { title: "Contra III: The Alien Wars", console: "snes", core: "snes", system: "snes", slug: "contra-iii-the-alien-wars-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Super%20Nintendo%20Entertainment%20System/Named_Boxarts/Contra%20III%20-%20The%20Alien%20Wars%20(USA).png" },
+  { title: "Kirby Super Star", console: "snes", core: "snes", system: "snes", slug: "kirby-super-star-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Super%20Nintendo%20Entertainment%20System/Named_Boxarts/Kirby%20Super%20Star%20(USA).png" },
+  { title: "Secret of Mana", console: "snes", core: "snes", system: "snes", slug: "secret-of-mana-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Super%20Nintendo%20Entertainment%20System/Named_Boxarts/Secret%20of%20Mana%20(USA).png" },
+  { title: "Super Mario Kart", console: "snes", core: "snes", system: "snes", slug: "super-mario-kart-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Super%20Nintendo%20Entertainment%20System/Named_Boxarts/Super%20Mario%20Kart%20(USA).png" },
+  { title: "Donkey Kong Country 2", console: "snes", core: "snes", system: "snes", slug: "donkey-kong-country-2-diddys-kong-quest-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Super%20Nintendo%20Entertainment%20System/Named_Boxarts/Donkey%20Kong%20Country%202%20-%20Diddy's%20Kong%20Quest%20(USA)%20(Rev%201).png" },
+  { title: "Super Mario RPG", console: "snes", core: "snes", system: "snes", slug: "super-mario-rpg-legend-of-the-seven-stars-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Super%20Nintendo%20Entertainment%20System/Named_Boxarts/Super%20Mario%20RPG%20-%20Legend%20of%20the%20Seven%20Stars%20(USA).png" },
+  { title: "Yoshi's Island", console: "snes", core: "snes", system: "snes", slug: "super-mario-world-2-yoshis-island-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Super%20Nintendo%20Entertainment%20System/Named_Boxarts/Super%20Mario%20World%202%20-%20Yoshi's%20Island%20(USA).png" },
+  { title: "Mortal Kombat II", console: "snes", core: "snes", system: "snes", slug: "mortal-kombat-ii-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Super%20Nintendo%20Entertainment%20System/Named_Boxarts/Mortal%20Kombat%20II%20(USA).png" },
+
+  // ===== N64 =====
+  { title: "Super Mario 64", console: "n64", core: "n64", system: "n64", slug: "super-mario-64-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%2064/Named_Boxarts/Super%20Mario%2064%20(USA).png" },
+  { title: "Zelda: Ocarina of Time", console: "n64", core: "n64", system: "n64", slug: "legend-of-zelda-the-ocarina-of-time-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%2064/Named_Boxarts/Legend%20of%20Zelda%2C%20The%20-%20Ocarina%20of%20Time%20(USA).png" },
+  { title: "Mario Kart 64", console: "n64", core: "n64", system: "n64", slug: "mario-kart-64-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%2064/Named_Boxarts/Mario%20Kart%2064%20(USA).png" },
+  { title: "GoldenEye 007", console: "n64", core: "n64", system: "n64", slug: "goldeneye-007-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%2064/Named_Boxarts/GoldenEye%20007%20(USA).png" },
+  { title: "Star Fox 64", console: "n64", core: "n64", system: "n64", slug: "star-fox-64-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%2064/Named_Boxarts/Star%20Fox%2064%20(USA).png" },
+  { title: "Banjo-Kazooie", console: "n64", core: "n64", system: "n64", slug: "banjo-kazooie-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%2064/Named_Boxarts/Banjo-Kazooie%20(USA).png" },
+  { title: "Donkey Kong 64", console: "n64", core: "n64", system: "n64", slug: "donkey-kong-64-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%2064/Named_Boxarts/Donkey%20Kong%2064%20(USA).png" },
+  { title: "Paper Mario", console: "n64", core: "n64", system: "n64", slug: "paper-mario-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%2064/Named_Boxarts/Paper%20Mario%20(USA).png" },
+  { title: "F-Zero X", console: "n64", core: "n64", system: "n64", slug: "f-zero-x-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%2064/Named_Boxarts/F-Zero%20X%20(USA).png" },
+  { title: "Wave Race 64", console: "n64", core: "n64", system: "n64", slug: "wave-race-64-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%2064/Named_Boxarts/Wave%20Race%2064%20(USA)%20(Rev%201).png" },
+  { title: "Diddy Kong Racing", console: "n64", core: "n64", system: "n64", slug: "diddy-kong-racing-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%2064/Named_Boxarts/Diddy%20Kong%20Racing%20(USA)%20(En%2CFr).png" },
+  { title: "Super Smash Bros.", console: "n64", core: "n64", system: "n64", slug: "super-smash-bros-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%2064/Named_Boxarts/Super%20Smash%20Bros.%20(USA).png" },
+  { title: "Pokemon Stadium", console: "n64", core: "n64", system: "n64", slug: "pokemon-stadium-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%2064/Named_Boxarts/Pokemon%20Stadium%20(USA).png" },
+  { title: "Zelda: Majora's Mask", console: "n64", core: "n64", system: "n64", slug: "legend-of-zelda-the-majoras-mask-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%2064/Named_Boxarts/Legend%20of%20Zelda%2C%20The%20-%20Majora's%20Mask%20(USA).png" },
+  { title: "Mario Party 2", console: "n64", core: "n64", system: "n64", slug: "mario-party-2-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%2064/Named_Boxarts/Mario%20Party%202%20(USA).png" },
+  { title: "Perfect Dark", console: "n64", core: "n64", system: "n64", slug: "perfect-dark-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%2064/Named_Boxarts/Perfect%20Dark%20(USA)%20(Rev%201).png" },
+  { title: "Mario Tennis", console: "n64", core: "n64", system: "n64", slug: "mario-tennis-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%2064/Named_Boxarts/Mario%20Tennis%20(USA).png" },
+  { title: "Bomberman 64", console: "n64", core: "n64", system: "n64", slug: "bomberman-64-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%2064/Named_Boxarts/Bomberman%2064%20(USA).png" },
+  { title: "Kirby 64", console: "n64", core: "n64", system: "n64", slug: "kirby-64-the-crystal-shards-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%2064/Named_Boxarts/Kirby%2064%20-%20The%20Crystal%20Shards%20(USA).png" },
+  { title: "Excitebike 64", console: "n64", core: "n64", system: "n64", slug: "excitebike-64-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%2064/Named_Boxarts/Excitebike%2064%20(USA).png" },
+
+  // ===== GAME BOY =====
+  { title: "Pokemon Red", console: "gb", core: "gb", system: "gb", slug: "pokemon-red-version-usa-europe-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Game%20Boy/Named_Boxarts/Pokemon%20-%20Red%20Version%20(USA%2C%20Europe)%20(SGB%20Enhanced).png" },
+  { title: "Pokemon Blue", console: "gb", core: "gb", system: "gb", slug: "pokemon-blue-version-usa-europe-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Game%20Boy/Named_Boxarts/Pokemon%20-%20Blue%20Version%20(USA%2C%20Europe)%20(SGB%20Enhanced).png" },
+  { title: "Zelda: Link's Awakening", console: "gb", core: "gb", system: "gb", slug: "legend-of-zelda-the-links-awakening-usa-europe-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Game%20Boy/Named_Boxarts/Legend%20of%20Zelda%2C%20The%20-%20Link's%20Awakening%20(USA%2C%20Europe).png" },
+  { title: "Super Mario Land", console: "gb", core: "gb", system: "gb", slug: "super-mario-land-world-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Game%20Boy/Named_Boxarts/Super%20Mario%20Land%20(World).png" },
+  { title: "Tetris", console: "gb", core: "gb", system: "gb", slug: "tetris-world-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Game%20Boy/Named_Boxarts/Tetris%20(World)%20(Rev%201).png" },
+  { title: "Kirby's Dream Land", console: "gb", core: "gb", system: "gb", slug: "kirbys-dream-land-usa-europe-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Game%20Boy/Named_Boxarts/Kirby's%20Dream%20Land%20(USA%2C%20Europe).png" },
+  { title: "Metroid II", console: "gb", core: "gb", system: "gb", slug: "metroid-ii-return-of-samus-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Game%20Boy/Named_Boxarts/Metroid%20II%20-%20Return%20of%20Samus%20(World).png" },
+  { title: "Wario Land", console: "gb", core: "gb", system: "gb", slug: "wario-land-super-mario-land-3-world-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Game%20Boy/Named_Boxarts/Wario%20Land%20-%20Super%20Mario%20Land%203%20(World).png" },
+  { title: "Super Mario Land 2", console: "gb", core: "gb", system: "gb", slug: "super-mario-land-2-6-golden-coins-usa-europe-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Game%20Boy/Named_Boxarts/Super%20Mario%20Land%202%20-%206%20Golden%20Coins%20(USA%2C%20Europe)%20(Rev%202).png" },
+  { title: "Donkey Kong Land", console: "gb", core: "gb", system: "gb", slug: "donkey-kong-land-usa-europe-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Game%20Boy/Named_Boxarts/Donkey%20Kong%20Land%20(USA%2C%20Europe)%20(SGB%20Enhanced).png" },
+
+  // ===== GAME BOY COLOR =====
+  { title: "Pokemon Gold", console: "gbc", core: "gb", system: "gbc", slug: "pokemon-gold-version-usa-europe-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Game%20Boy%20Color/Named_Boxarts/Pokemon%20-%20Gold%20Version%20(USA%2C%20Europe)%20(SGB%20Enhanced)%20(GB%20Compatible).png" },
+  { title: "Pokemon Silver", console: "gbc", core: "gb", system: "gbc", slug: "pokemon-silver-version-usa-europe-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Game%20Boy%20Color/Named_Boxarts/Pokemon%20-%20Silver%20Version%20(USA%2C%20Europe)%20(SGB%20Enhanced)%20(GB%20Compatible).png" },
+  { title: "Pokemon Crystal", console: "gbc", core: "gb", system: "gbc", slug: "pokemon-crystal-version-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Game%20Boy%20Color/Named_Boxarts/Pokemon%20-%20Crystal%20Version%20(USA%2C%20Europe).png" },
+  { title: "Zelda: Oracle of Ages", console: "gbc", core: "gb", system: "gbc", slug: "legend-of-zelda-the-oracle-of-ages-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Game%20Boy%20Color/Named_Boxarts/Legend%20of%20Zelda%2C%20The%20-%20Oracle%20of%20Ages%20(USA).png" },
+  { title: "Zelda: Oracle of Seasons", console: "gbc", core: "gb", system: "gbc", slug: "legend-of-zelda-the-oracle-of-seasons-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Game%20Boy%20Color/Named_Boxarts/Legend%20of%20Zelda%2C%20The%20-%20Oracle%20of%20Seasons%20(USA).png" },
+  { title: "Mario Golf", console: "gbc", core: "gb", system: "gbc", slug: "mario-golf-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Game%20Boy%20Color/Named_Boxarts/Mario%20Golf%20(USA).png" },
+  { title: "Wario Land 3", console: "gbc", core: "gb", system: "gbc", slug: "wario-land-3-world-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Game%20Boy%20Color/Named_Boxarts/Wario%20Land%203%20(World)%20(En%2CJa).png" },
+  { title: "Dragon Warrior III", console: "gbc", core: "gb", system: "gbc", slug: "dragon-warrior-iii-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Game%20Boy%20Color/Named_Boxarts/Dragon%20Warrior%20III%20(USA).png" },
+  { title: "Metal Gear Solid", console: "gbc", core: "gb", system: "gbc", slug: "metal-gear-solid-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Game%20Boy%20Color/Named_Boxarts/Metal%20Gear%20Solid%20(USA)%20(En%2CFr%2CDe%2CEs%2CIt).png" },
+  { title: "Kirby Tilt 'n' Tumble", console: "gbc", core: "gb", system: "gbc", slug: "kirby-tilt-n-tumble-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Game%20Boy%20Color/Named_Boxarts/Kirby%20Tilt%20'n'%20Tumble%20(USA).png" },
+
+  // ===== GBA =====
+  { title: "Pokemon FireRed", console: "gba", core: "gba", system: "gba", slug: "pokemon-fire-red-version-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Game%20Boy%20Advance/Named_Boxarts/Pokemon%20-%20Fire%20Red%20Version%20(USA%2C%20Europe)%20(Rev%201).png" },
+  { title: "Pokemon Emerald", console: "gba", core: "gba", system: "gba", slug: "pokemon-emerald-version-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Game%20Boy%20Advance/Named_Boxarts/Pokemon%20-%20Emerald%20Version%20(USA%2C%20Europe).png" },
+  { title: "Zelda: The Minish Cap", console: "gba", core: "gba", system: "gba", slug: "legend-of-zelda-the-the-minish-cap-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Game%20Boy%20Advance/Named_Boxarts/Legend%20of%20Zelda%2C%20The%20-%20The%20Minish%20Cap%20(USA).png" },
+  { title: "Metroid Fusion", console: "gba", core: "gba", system: "gba", slug: "metroid-fusion-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Game%20Boy%20Advance/Named_Boxarts/Metroid%20Fusion%20(USA).png" },
+  { title: "Mario Kart: Super Circuit", console: "gba", core: "gba", system: "gba", slug: "mario-kart-super-circuit-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Game%20Boy%20Advance/Named_Boxarts/Mario%20Kart%20-%20Super%20Circuit%20(USA).png" },
+  { title: "Advance Wars", console: "gba", core: "gba", system: "gba", slug: "advance-wars-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Game%20Boy%20Advance/Named_Boxarts/Advance%20Wars%20(USA).png" },
+  { title: "Final Fantasy Tactics Advance", console: "gba", core: "gba", system: "gba", slug: "final-fantasy-tactics-advance-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Game%20Boy%20Advance/Named_Boxarts/Final%20Fantasy%20Tactics%20Advance%20(USA).png" },
+  { title: "Castlevania: Aria of Sorrow", console: "gba", core: "gba", system: "gba", slug: "castlevania-aria-of-sorrow-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Game%20Boy%20Advance/Named_Boxarts/Castlevania%20-%20Aria%20of%20Sorrow%20(USA).png" },
+  { title: "Kirby: Nightmare in Dream Land", console: "gba", core: "gba", system: "gba", slug: "kirby-nightmare-in-dream-land-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Game%20Boy%20Advance/Named_Boxarts/Kirby%20-%20Nightmare%20in%20Dream%20Land%20(USA).png" },
+  { title: "Mario & Luigi: Superstar Saga", console: "gba", core: "gba", system: "gba", slug: "mario-and-luigi-superstar-saga-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Game%20Boy%20Advance/Named_Boxarts/Mario%20%26%20Luigi%20-%20Superstar%20Saga%20(USA).png" },
+  { title: "Metroid: Zero Mission", console: "gba", core: "gba", system: "gba", slug: "metroid-zero-mission-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Game%20Boy%20Advance/Named_Boxarts/Metroid%20-%20Zero%20Mission%20(USA).png" },
+  { title: "Fire Emblem", console: "gba", core: "gba", system: "gba", slug: "fire-emblem-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Game%20Boy%20Advance/Named_Boxarts/Fire%20Emblem%20(USA%2C%20Australia).png" },
+  { title: "Golden Sun", console: "gba", core: "gba", system: "gba", slug: "golden-sun-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Game%20Boy%20Advance/Named_Boxarts/Golden%20Sun%20(USA).png" },
+  { title: "WarioWare, Inc.", console: "gba", core: "gba", system: "gba", slug: "warioware-inc-mega-microgames-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Game%20Boy%20Advance/Named_Boxarts/WarioWare%2C%20Inc.%20-%20Mega%20Microgame%24!%20(USA).png" },
+  { title: "Super Mario Advance 4", console: "gba", core: "gba", system: "gba", slug: "super-mario-advance-4-super-mario-bros-3-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Game%20Boy%20Advance/Named_Boxarts/Super%20Mario%20Advance%204%20-%20Super%20Mario%20Bros.%203%20(USA).png" },
+
+  // ===== SEGA GENESIS =====
+  { title: "Sonic the Hedgehog", console: "genesis", core: "segaMD", system: "genesis", slug: "sonic-the-hedgehog-usa-europe-", img: "https://thumbnails.libretro.com/Sega%20-%20Mega%20Drive%20-%20Genesis/Named_Boxarts/Sonic%20The%20Hedgehog%20(USA%2C%20Europe).png" },
+  { title: "Sonic the Hedgehog 2", console: "genesis", core: "segaMD", system: "genesis", slug: "sonic-the-hedgehog-2-world-", img: "https://thumbnails.libretro.com/Sega%20-%20Mega%20Drive%20-%20Genesis/Named_Boxarts/Sonic%20The%20Hedgehog%202%20(World).png" },
+  { title: "Sonic the Hedgehog 3", console: "genesis", core: "segaMD", system: "genesis", slug: "sonic-the-hedgehog-3-usa-", img: "https://thumbnails.libretro.com/Sega%20-%20Mega%20Drive%20-%20Genesis/Named_Boxarts/Sonic%20The%20Hedgehog%203%20(USA).png" },
+  { title: "Streets of Rage", console: "genesis", core: "segaMD", system: "genesis", slug: "streets-of-rage-usa-europe-", img: "https://thumbnails.libretro.com/Sega%20-%20Mega%20Drive%20-%20Genesis/Named_Boxarts/Streets%20of%20Rage%20(USA%2C%20Europe).png" },
+  { title: "Streets of Rage 2", console: "genesis", core: "segaMD", system: "genesis", slug: "streets-of-rage-2-usa-", img: "https://thumbnails.libretro.com/Sega%20-%20Mega%20Drive%20-%20Genesis/Named_Boxarts/Streets%20of%20Rage%202%20(USA).png" },
+  { title: "Golden Axe", console: "genesis", core: "segaMD", system: "genesis", slug: "golden-axe-world-", img: "https://thumbnails.libretro.com/Sega%20-%20Mega%20Drive%20-%20Genesis/Named_Boxarts/Golden%20Axe%20(World)%20(Rev%20A).png" },
+  { title: "Mortal Kombat", console: "genesis", core: "segaMD", system: "genesis", slug: "mortal-kombat-world-", img: "https://thumbnails.libretro.com/Sega%20-%20Mega%20Drive%20-%20Genesis/Named_Boxarts/Mortal%20Kombat%20(World).png" },
+  { title: "Phantasy Star IV", console: "genesis", core: "segaMD", system: "genesis", slug: "phantasy-star-iv-usa-", img: "https://thumbnails.libretro.com/Sega%20-%20Mega%20Drive%20-%20Genesis/Named_Boxarts/Phantasy%20Star%20IV%20(USA).png" },
+  { title: "Shinobi III", console: "genesis", core: "segaMD", system: "genesis", slug: "shinobi-iii-return-of-the-ninja-master-usa-", img: "https://thumbnails.libretro.com/Sega%20-%20Mega%20Drive%20-%20Genesis/Named_Boxarts/Shinobi%20III%20-%20Return%20of%20the%20Ninja%20Master%20(USA).png" },
+  { title: "Altered Beast", console: "genesis", core: "segaMD", system: "genesis", slug: "altered-beast-usa-europe-", img: "https://thumbnails.libretro.com/Sega%20-%20Mega%20Drive%20-%20Genesis/Named_Boxarts/Altered%20Beast%20(USA%2C%20Europe).png" },
+  { title: "Ecco the Dolphin", console: "genesis", core: "segaMD", system: "genesis", slug: "ecco-the-dolphin-usa-europe-", img: "https://thumbnails.libretro.com/Sega%20-%20Mega%20Drive%20-%20Genesis/Named_Boxarts/Ecco%20the%20Dolphin%20(USA%2C%20Europe).png" },
+  { title: "ToeJam & Earl", console: "genesis", core: "segaMD", system: "genesis", slug: "toejam-and-earl-usa-", img: "https://thumbnails.libretro.com/Sega%20-%20Mega%20Drive%20-%20Genesis/Named_Boxarts/ToeJam%20%26%20Earl%20(USA%2C%20Europe).png" },
+  { title: "Gunstar Heroes", console: "genesis", core: "segaMD", system: "genesis", slug: "gunstar-heroes-usa-", img: "https://thumbnails.libretro.com/Sega%20-%20Mega%20Drive%20-%20Genesis/Named_Boxarts/Gunstar%20Heroes%20(USA).png" },
+  { title: "Comix Zone", console: "genesis", core: "segaMD", system: "genesis", slug: "comix-zone-usa-", img: "https://thumbnails.libretro.com/Sega%20-%20Mega%20Drive%20-%20Genesis/Named_Boxarts/Comix%20Zone%20(USA).png" },
+  { title: "Vectorman", console: "genesis", core: "segaMD", system: "genesis", slug: "vectorman-usa-", img: "https://thumbnails.libretro.com/Sega%20-%20Mega%20Drive%20-%20Genesis/Named_Boxarts/Vectorman%20(USA%2C%20Europe).png" },
+  { title: "Earthworm Jim", console: "genesis", core: "segaMD", system: "genesis", slug: "earthworm-jim-usa-", img: "https://thumbnails.libretro.com/Sega%20-%20Mega%20Drive%20-%20Genesis/Named_Boxarts/Earthworm%20Jim%20(USA).png" },
+  { title: "Castlevania: Bloodlines", console: "genesis", core: "segaMD", system: "genesis", slug: "castlevania-bloodlines-usa-", img: "https://thumbnails.libretro.com/Sega%20-%20Mega%20Drive%20-%20Genesis/Named_Boxarts/Castlevania%20-%20Bloodlines%20(USA).png" },
+  { title: "Aladdin", console: "genesis", core: "segaMD", system: "genesis", slug: "aladdin-usa-", img: "https://thumbnails.libretro.com/Sega%20-%20Mega%20Drive%20-%20Genesis/Named_Boxarts/Aladdin%20(USA).png" },
+  { title: "Road Rash II", console: "genesis", core: "segaMD", system: "genesis", slug: "road-rash-ii-usa-europe-", img: "https://thumbnails.libretro.com/Sega%20-%20Mega%20Drive%20-%20Genesis/Named_Boxarts/Road%20Rash%20II%20(USA%2C%20Europe).png" },
+  { title: "Sonic & Knuckles", console: "genesis", core: "segaMD", system: "genesis", slug: "sonic-and-knuckles-world-", img: "https://thumbnails.libretro.com/Sega%20-%20Mega%20Drive%20-%20Genesis/Named_Boxarts/Sonic%20%26%20Knuckles%20(World).png" },
+
+  // ===== SEGA MASTER SYSTEM =====
+  { title: "Sonic the Hedgehog", console: "sms", core: "segaMS", system: "sms", slug: "sonic-the-hedgehog-usa-europe-", img: "https://thumbnails.libretro.com/Sega%20-%20Master%20System%20-%20Mark%20III/Named_Boxarts/Sonic%20The%20Hedgehog%20(USA%2C%20Europe).png" },
+  { title: "Alex Kidd in Miracle World", console: "sms", core: "segaMS", system: "sms", slug: "alex-kidd-in-miracle-world-usa-europe-", img: "https://thumbnails.libretro.com/Sega%20-%20Master%20System%20-%20Mark%20III/Named_Boxarts/Alex%20Kidd%20in%20Miracle%20World%20(USA%2C%20Europe)%20(Rev%201).png" },
+  { title: "Phantasy Star", console: "sms", core: "segaMS", system: "sms", slug: "phantasy-star-usa-europe-", img: "https://thumbnails.libretro.com/Sega%20-%20Master%20System%20-%20Mark%20III/Named_Boxarts/Phantasy%20Star%20(USA%2C%20Europe)%20(Rev%201).png" },
+  { title: "Wonder Boy III", console: "sms", core: "segaMS", system: "sms", slug: "wonder-boy-iii-the-dragons-trap-usa-europe-", img: "https://thumbnails.libretro.com/Sega%20-%20Master%20System%20-%20Mark%20III/Named_Boxarts/Wonder%20Boy%20III%20-%20The%20Dragon's%20Trap%20(USA%2C%20Europe).png" },
+  { title: "Castle of Illusion", console: "sms", core: "segaMS", system: "sms", slug: "castle-of-illusion-starring-mickey-mouse-usa-europe-", img: "https://thumbnails.libretro.com/Sega%20-%20Master%20System%20-%20Mark%20III/Named_Boxarts/Castle%20of%20Illusion%20Starring%20Mickey%20Mouse%20(USA%2C%20Europe).png" },
+  { title: "Shinobi", console: "sms", core: "segaMS", system: "sms", slug: "shinobi-usa-europe-", img: "https://thumbnails.libretro.com/Sega%20-%20Master%20System%20-%20Mark%20III/Named_Boxarts/Shinobi%20(USA%2C%20Europe).png" },
+  { title: "R-Type", console: "sms", core: "segaMS", system: "sms", slug: "r-type-usa-europe-", img: "https://thumbnails.libretro.com/Sega%20-%20Master%20System%20-%20Mark%20III/Named_Boxarts/R-Type%20(USA%2C%20Europe).png" },
+  { title: "Golden Axe Warrior", console: "sms", core: "segaMS", system: "sms", slug: "golden-axe-warrior-usa-europe-", img: "https://thumbnails.libretro.com/Sega%20-%20Master%20System%20-%20Mark%20III/Named_Boxarts/Golden%20Axe%20Warrior%20(USA%2C%20Europe).png" },
+  { title: "Ninja Gaiden", console: "sms", core: "segaMS", system: "sms", slug: "ninja-gaiden-usa-europe-", img: "https://thumbnails.libretro.com/Sega%20-%20Master%20System%20-%20Mark%20III/Named_Boxarts/Ninja%20Gaiden%20(USA%2C%20Europe).png" },
+  { title: "Double Dragon", console: "sms", core: "segaMS", system: "sms", slug: "double-dragon-usa-europe-", img: "https://thumbnails.libretro.com/Sega%20-%20Master%20System%20-%20Mark%20III/Named_Boxarts/Double%20Dragon%20(USA%2C%20Europe).png" },
+
+  // ===== SEGA SATURN =====
+  { title: "Nights into Dreams", console: "saturn", core: "segaSaturn", system: "saturn", slug: "nights-into-dreams-usa-", img: "https://thumbnails.libretro.com/Sega%20-%20Saturn/Named_Boxarts/NiGHTS%20into%20Dreams...%20(USA).png" },
+  { title: "Virtua Fighter 2", console: "saturn", core: "segaSaturn", system: "saturn", slug: "virtua-fighter-2-usa-", img: "https://thumbnails.libretro.com/Sega%20-%20Saturn/Named_Boxarts/Virtua%20Fighter%202%20(USA).png" },
+  { title: "Panzer Dragoon", console: "saturn", core: "segaSaturn", system: "saturn", slug: "panzer-dragoon-usa-", img: "https://thumbnails.libretro.com/Sega%20-%20Saturn/Named_Boxarts/Panzer%20Dragoon%20(USA).png" },
+  { title: "Daytona USA", console: "saturn", core: "segaSaturn", system: "saturn", slug: "daytona-usa-usa-", img: "https://thumbnails.libretro.com/Sega%20-%20Saturn/Named_Boxarts/Daytona%20USA%20(USA).png" },
+  { title: "Sega Rally Championship", console: "saturn", core: "segaSaturn", system: "saturn", slug: "sega-rally-championship-usa-", img: "https://thumbnails.libretro.com/Sega%20-%20Saturn/Named_Boxarts/Sega%20Rally%20Championship%20(USA).png" },
+
+  // ===== PS1 =====
+  { title: "Final Fantasy VII", console: "ps1", core: "psx", system: "ps1", slug: "final-fantasy-vii-usa-", img: "https://thumbnails.libretro.com/Sony%20-%20PlayStation/Named_Boxarts/Final%20Fantasy%20VII%20(USA)%20(Disc%201).png" },
+  { title: "Crash Bandicoot", console: "ps1", core: "psx", system: "ps1", slug: "crash-bandicoot-usa-", img: "https://thumbnails.libretro.com/Sony%20-%20PlayStation/Named_Boxarts/Crash%20Bandicoot%20(USA).png" },
+  { title: "Spyro the Dragon", console: "ps1", core: "psx", system: "ps1", slug: "spyro-the-dragon-usa-", img: "https://thumbnails.libretro.com/Sony%20-%20PlayStation/Named_Boxarts/Spyro%20the%20Dragon%20(USA).png" },
+  { title: "Metal Gear Solid", console: "ps1", core: "psx", system: "ps1", slug: "metal-gear-solid-usa-", img: "https://thumbnails.libretro.com/Sony%20-%20PlayStation/Named_Boxarts/Metal%20Gear%20Solid%20(USA)%20(Disc%201)%20(Rev%201).png" },
+  { title: "Resident Evil", console: "ps1", core: "psx", system: "ps1", slug: "resident-evil-usa-", img: "https://thumbnails.libretro.com/Sony%20-%20PlayStation/Named_Boxarts/Resident%20Evil%20(USA).png" },
+  { title: "Castlevania: SOTN", console: "ps1", core: "psx", system: "ps1", slug: "castlevania-symphony-of-the-night-usa-", img: "https://thumbnails.libretro.com/Sony%20-%20PlayStation/Named_Boxarts/Castlevania%20-%20Symphony%20of%20the%20Night%20(USA).png" },
+  { title: "Tekken 3", console: "ps1", core: "psx", system: "ps1", slug: "tekken-3-usa-", img: "https://thumbnails.libretro.com/Sony%20-%20PlayStation/Named_Boxarts/Tekken%203%20(USA).png" },
+  { title: "Gran Turismo", console: "ps1", core: "psx", system: "ps1", slug: "gran-turismo-usa-", img: "https://thumbnails.libretro.com/Sony%20-%20PlayStation/Named_Boxarts/Gran%20Turismo%20(USA).png" },
+  { title: "Tomb Raider", console: "ps1", core: "psx", system: "ps1", slug: "tomb-raider-usa-", img: "https://thumbnails.libretro.com/Sony%20-%20PlayStation/Named_Boxarts/Tomb%20Raider%20(USA).png" },
+  { title: "Tony Hawk's Pro Skater 2", console: "ps1", core: "psx", system: "ps1", slug: "tony-hawks-pro-skater-2-usa-", img: "https://thumbnails.libretro.com/Sony%20-%20PlayStation/Named_Boxarts/Tony%20Hawk's%20Pro%20Skater%202%20(USA).png" },
+  { title: "Crash Bandicoot 2", console: "ps1", core: "psx", system: "ps1", slug: "crash-bandicoot-2-cortex-strikes-back-usa-", img: "https://thumbnails.libretro.com/Sony%20-%20PlayStation/Named_Boxarts/Crash%20Bandicoot%202%20-%20Cortex%20Strikes%20Back%20(USA).png" },
+  { title: "Crash Bandicoot 3: Warped", console: "ps1", core: "psx", system: "ps1", slug: "crash-bandicoot-warped-usa-", img: "https://thumbnails.libretro.com/Sony%20-%20PlayStation/Named_Boxarts/Crash%20Bandicoot%20-%20Warped%20(USA).png" },
+  { title: "MediEvil", console: "ps1", core: "psx", system: "ps1", slug: "medievil-usa-", img: "https://thumbnails.libretro.com/Sony%20-%20PlayStation/Named_Boxarts/MediEvil%20(USA).png" },
+  { title: "Rayman", console: "ps1", core: "psx", system: "ps1", slug: "rayman-usa-", img: "https://thumbnails.libretro.com/Sony%20-%20PlayStation/Named_Boxarts/Rayman%20(USA).png" },
+  { title: "Silent Hill", console: "ps1", core: "psx", system: "ps1", slug: "silent-hill-usa-", img: "https://thumbnails.libretro.com/Sony%20-%20PlayStation/Named_Boxarts/Silent%20Hill%20(USA).png" },
+  { title: "Resident Evil 2", console: "ps1", core: "psx", system: "ps1", slug: "resident-evil-2-usa-", img: "https://thumbnails.libretro.com/Sony%20-%20PlayStation/Named_Boxarts/Resident%20Evil%202%20(USA)%20(Disc%201).png" },
+  { title: "Final Fantasy IX", console: "ps1", core: "psx", system: "ps1", slug: "final-fantasy-ix-usa-", img: "https://thumbnails.libretro.com/Sony%20-%20PlayStation/Named_Boxarts/Final%20Fantasy%20IX%20(USA)%20(Disc%201).png" },
+  { title: "Mega Man X4", console: "ps1", core: "psx", system: "ps1", slug: "mega-man-x4-usa-", img: "https://thumbnails.libretro.com/Sony%20-%20PlayStation/Named_Boxarts/Mega%20Man%20X4%20(USA).png" },
+  { title: "Twisted Metal 2", console: "ps1", core: "psx", system: "ps1", slug: "twisted-metal-2-usa-", img: "https://thumbnails.libretro.com/Sony%20-%20PlayStation/Named_Boxarts/Twisted%20Metal%202%20(USA).png" },
+  { title: "Ape Escape", console: "ps1", core: "psx", system: "ps1", slug: "ape-escape-usa-", img: "https://thumbnails.libretro.com/Sony%20-%20PlayStation/Named_Boxarts/Ape%20Escape%20(USA).png" },
+
+  // ===== PSP =====
+  { title: "God of War: Chains of Olympus", console: "psp", core: "psp", system: "psp", slug: "god-of-war-chains-of-olympus-usa-", img: "https://thumbnails.libretro.com/Sony%20-%20PlayStation%20Portable/Named_Boxarts/God%20of%20War%20-%20Chains%20of%20Olympus%20(USA).png" },
+  { title: "Grand Theft Auto: Vice City Stories", console: "psp", core: "psp", system: "psp", slug: "grand-theft-auto-vice-city-stories-usa-", img: "https://thumbnails.libretro.com/Sony%20-%20PlayStation%20Portable/Named_Boxarts/Grand%20Theft%20Auto%20-%20Vice%20City%20Stories%20(USA).png" },
+  { title: "Crisis Core: Final Fantasy VII", console: "psp", core: "psp", system: "psp", slug: "crisis-core-final-fantasy-vii-usa-", img: "https://thumbnails.libretro.com/Sony%20-%20PlayStation%20Portable/Named_Boxarts/Crisis%20Core%20-%20Final%20Fantasy%20VII%20(USA).png" },
+  { title: "Monster Hunter Freedom Unite", console: "psp", core: "psp", system: "psp", slug: "monster-hunter-freedom-unite-usa-", img: "https://thumbnails.libretro.com/Sony%20-%20PlayStation%20Portable/Named_Boxarts/Monster%20Hunter%20Freedom%20Unite%20(USA).png" },
+  { title: "Daxter", console: "psp", core: "psp", system: "psp", slug: "daxter-usa-", img: "https://thumbnails.libretro.com/Sony%20-%20PlayStation%20Portable/Named_Boxarts/Daxter%20(USA).png" },
+  { title: "Lumines", console: "psp", core: "psp", system: "psp", slug: "lumines-usa-", img: "https://thumbnails.libretro.com/Sony%20-%20PlayStation%20Portable/Named_Boxarts/Lumines%20(USA).png" },
+  { title: "Tekken: Dark Resurrection", console: "psp", core: "psp", system: "psp", slug: "tekken-dark-resurrection-usa-", img: "https://thumbnails.libretro.com/Sony%20-%20PlayStation%20Portable/Named_Boxarts/Tekken%20-%20Dark%20Resurrection%20(USA).png" },
+  { title: "Mega Man: Maverick Hunter X", console: "psp", core: "psp", system: "psp", slug: "mega-man-maverick-hunter-x-usa-", img: "https://thumbnails.libretro.com/Sony%20-%20PlayStation%20Portable/Named_Boxarts/Mega%20Man%20-%20Maverick%20Hunter%20X%20(USA).png" },
+  { title: "Patapon", console: "psp", core: "psp", system: "psp", slug: "patapon-usa-", img: "https://thumbnails.libretro.com/Sony%20-%20PlayStation%20Portable/Named_Boxarts/Patapon%20(USA).png" },
+  { title: "LocoRoco", console: "psp", core: "psp", system: "psp", slug: "locoroco-usa-", img: "https://thumbnails.libretro.com/Sony%20-%20PlayStation%20Portable/Named_Boxarts/LocoRoco%20(USA).png" },
+
+  // ===== ATARI 2600 =====
+  { title: "Pitfall!", console: "atari2600", core: "atari2600", system: "atari2600", slug: "pitfall-pitfall-harrys-jungle-adventure-usa-", img: "https://thumbnails.libretro.com/Atari%20-%202600/Named_Boxarts/Pitfall!%20-%20Pitfall%20Harry's%20Jungle%20Adventure%20(USA).png" },
+  { title: "Space Invaders", console: "atari2600", core: "atari2600", system: "atari2600", slug: "space-invaders-usa-", img: "https://thumbnails.libretro.com/Atari%20-%202600/Named_Boxarts/Space%20Invaders%20(USA).png" },
+  { title: "Pac-Man", console: "atari2600", core: "atari2600", system: "atari2600", slug: "pac-man-usa-", img: "https://thumbnails.libretro.com/Atari%20-%202600/Named_Boxarts/Pac-Man%20(USA).png" },
+  { title: "Asteroids", console: "atari2600", core: "atari2600", system: "atari2600", slug: "asteroids-usa-", img: "https://thumbnails.libretro.com/Atari%20-%202600/Named_Boxarts/Asteroids%20(USA).png" },
+  { title: "Frogger", console: "atari2600", core: "atari2600", system: "atari2600", slug: "frogger-usa-", img: "https://thumbnails.libretro.com/Atari%20-%202600/Named_Boxarts/Frogger%20(USA).png" },
+  { title: "Breakout", console: "atari2600", core: "atari2600", system: "atari2600", slug: "breakout-usa-", img: "https://thumbnails.libretro.com/Atari%20-%202600/Named_Boxarts/Breakout%20(USA).png" },
+  { title: "Combat", console: "atari2600", core: "atari2600", system: "atari2600", slug: "combat-usa-", img: "https://thumbnails.libretro.com/Atari%20-%202600/Named_Boxarts/Combat%20(USA).png" },
+  { title: "Centipede", console: "atari2600", core: "atari2600", system: "atari2600", slug: "centipede-usa-", img: "https://thumbnails.libretro.com/Atari%20-%202600/Named_Boxarts/Centipede%20(USA).png" },
+  { title: "River Raid", console: "atari2600", core: "atari2600", system: "atari2600", slug: "river-raid-usa-", img: "https://thumbnails.libretro.com/Atari%20-%202600/Named_Boxarts/River%20Raid%20(USA).png" },
+  { title: "Missile Command", console: "atari2600", core: "atari2600", system: "atari2600", slug: "missile-command-usa-", img: "https://thumbnails.libretro.com/Atari%20-%202600/Named_Boxarts/Missile%20Command%20(USA).png" },
+
+  // ===== NEO GEO =====
+  { title: "Metal Slug", console: "neogeo", core: "arcade", system: "neogeo", slug: "metal-slug-super-vehicle-001-", img: "https://thumbnails.libretro.com/FBNeo%20-%20Arcade%20Games/Named_Boxarts/Metal%20Slug%20-%20Super%20Vehicle-001.png" },
+  { title: "King of Fighters '98", console: "neogeo", core: "arcade", system: "neogeo", slug: "king-of-fighters-98-the-slugfest-", img: "https://thumbnails.libretro.com/FBNeo%20-%20Arcade%20Games/Named_Boxarts/The%20King%20of%20Fighters%20'98%20-%20The%20Slugfest.png" },
+  { title: "Samurai Shodown II", console: "neogeo", core: "arcade", system: "neogeo", slug: "samurai-shodown-ii-", img: "https://thumbnails.libretro.com/FBNeo%20-%20Arcade%20Games/Named_Boxarts/Samurai%20Shodown%20II.png" },
+  { title: "Fatal Fury Special", console: "neogeo", core: "arcade", system: "neogeo", slug: "fatal-fury-special-", img: "https://thumbnails.libretro.com/FBNeo%20-%20Arcade%20Games/Named_Boxarts/Fatal%20Fury%20Special.png" },
+  { title: "Metal Slug 2", console: "neogeo", core: "arcade", system: "neogeo", slug: "metal-slug-2-super-vehicle-001-ii-", img: "https://thumbnails.libretro.com/FBNeo%20-%20Arcade%20Games/Named_Boxarts/Metal%20Slug%202%20-%20Super%20Vehicle-001-II.png" },
+  { title: "Art of Fighting 2", console: "neogeo", core: "arcade", system: "neogeo", slug: "art-of-fighting-2-", img: "https://thumbnails.libretro.com/FBNeo%20-%20Arcade%20Games/Named_Boxarts/Art%20of%20Fighting%202.png" },
+  { title: "Garou: Mark of the Wolves", console: "neogeo", core: "arcade", system: "neogeo", slug: "garou-mark-of-the-wolves-", img: "https://thumbnails.libretro.com/FBNeo%20-%20Arcade%20Games/Named_Boxarts/Garou%20-%20Mark%20of%20the%20Wolves.png" },
+  { title: "Last Blade 2", console: "neogeo", core: "arcade", system: "neogeo", slug: "last-blade-2-", img: "https://thumbnails.libretro.com/FBNeo%20-%20Arcade%20Games/Named_Boxarts/The%20Last%20Blade%202.png" },
+  { title: "Blazing Star", console: "neogeo", core: "arcade", system: "neogeo", slug: "blazing-star-", img: "https://thumbnails.libretro.com/FBNeo%20-%20Arcade%20Games/Named_Boxarts/Blazing%20Star.png" },
+  { title: "Metal Slug 3", console: "neogeo", core: "arcade", system: "neogeo", slug: "metal-slug-3-", img: "https://thumbnails.libretro.com/FBNeo%20-%20Arcade%20Games/Named_Boxarts/Metal%20Slug%203.png" },
+
+  // ===== ARCADE / MAME =====
+  { title: "Street Fighter II", console: "arcade", core: "arcade", system: "arcade", slug: "street-fighter-ii-the-world-warrior-", img: "https://thumbnails.libretro.com/FBNeo%20-%20Arcade%20Games/Named_Boxarts/Street%20Fighter%20II%20-%20The%20World%20Warrior.png" },
+  { title: "Pac-Man", console: "arcade", core: "arcade", system: "arcade", slug: "pac-man-", img: "https://thumbnails.libretro.com/FBNeo%20-%20Arcade%20Games/Named_Boxarts/Pac-Man.png" },
+  { title: "Donkey Kong", console: "arcade", core: "arcade", system: "arcade", slug: "donkey-kong-", img: "https://thumbnails.libretro.com/FBNeo%20-%20Arcade%20Games/Named_Boxarts/Donkey%20Kong.png" },
+  { title: "Galaga", console: "arcade", core: "arcade", system: "arcade", slug: "galaga-", img: "https://thumbnails.libretro.com/FBNeo%20-%20Arcade%20Games/Named_Boxarts/Galaga.png" },
+  { title: "Space Invaders", console: "arcade", core: "arcade", system: "arcade", slug: "space-invaders-", img: "https://thumbnails.libretro.com/FBNeo%20-%20Arcade%20Games/Named_Boxarts/Space%20Invaders.png" },
+  { title: "Mortal Kombat", console: "arcade", core: "arcade", system: "arcade", slug: "mortal-kombat-", img: "https://thumbnails.libretro.com/FBNeo%20-%20Arcade%20Games/Named_Boxarts/Mortal%20Kombat.png" },
+  { title: "Mortal Kombat II", console: "arcade", core: "arcade", system: "arcade", slug: "mortal-kombat-ii-", img: "https://thumbnails.libretro.com/FBNeo%20-%20Arcade%20Games/Named_Boxarts/Mortal%20Kombat%20II.png" },
+  { title: "Teenage Mutant Ninja Turtles", console: "arcade", core: "arcade", system: "arcade", slug: "teenage-mutant-ninja-turtles-", img: "https://thumbnails.libretro.com/FBNeo%20-%20Arcade%20Games/Named_Boxarts/Teenage%20Mutant%20Ninja%20Turtles.png" },
+  { title: "The Simpsons", console: "arcade", core: "arcade", system: "arcade", slug: "the-simpsons-", img: "https://thumbnails.libretro.com/FBNeo%20-%20Arcade%20Games/Named_Boxarts/The%20Simpsons.png" },
+  { title: "X-Men", console: "arcade", core: "arcade", system: "arcade", slug: "x-men-", img: "https://thumbnails.libretro.com/FBNeo%20-%20Arcade%20Games/Named_Boxarts/X-Men.png" },
+  { title: "Bubble Bobble", console: "arcade", core: "arcade", system: "arcade", slug: "bubble-bobble-", img: "https://thumbnails.libretro.com/FBNeo%20-%20Arcade%20Games/Named_Boxarts/Bubble%20Bobble.png" },
+  { title: "Double Dragon", console: "arcade", core: "arcade", system: "arcade", slug: "double-dragon-", img: "https://thumbnails.libretro.com/FBNeo%20-%20Arcade%20Games/Named_Boxarts/Double%20Dragon.png" },
+  { title: "Frogger", console: "arcade", core: "arcade", system: "arcade", slug: "frogger-", img: "https://thumbnails.libretro.com/FBNeo%20-%20Arcade%20Games/Named_Boxarts/Frogger.png" },
+  { title: "Centipede", console: "arcade", core: "arcade", system: "arcade", slug: "centipede-", img: "https://thumbnails.libretro.com/FBNeo%20-%20Arcade%20Games/Named_Boxarts/Centipede.png" },
+  { title: "Contra", console: "arcade", core: "arcade", system: "arcade", slug: "contra-", img: "https://thumbnails.libretro.com/FBNeo%20-%20Arcade%20Games/Named_Boxarts/Contra.png" },
+
+  // ===== NDS =====
+  { title: "New Super Mario Bros.", console: "nds", core: "nds", system: "nds", slug: "new-super-mario-bros-usa-europe-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%20DS/Named_Boxarts/New%20Super%20Mario%20Bros.%20(USA%2C%20Europe).png" },
+  { title: "Mario Kart DS", console: "nds", core: "nds", system: "nds", slug: "mario-kart-ds-usa-europe-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%20DS/Named_Boxarts/Mario%20Kart%20DS%20(USA%2C%20Europe).png" },
+  { title: "Pokemon Diamond", console: "nds", core: "nds", system: "nds", slug: "pokemon-diamond-version-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%20DS/Named_Boxarts/Pokemon%20-%20Diamond%20Version%20(USA).png" },
+  { title: "Pokemon Pearl", console: "nds", core: "nds", system: "nds", slug: "pokemon-pearl-version-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%20DS/Named_Boxarts/Pokemon%20-%20Pearl%20Version%20(USA).png" },
+  { title: "Zelda: Phantom Hourglass", console: "nds", core: "nds", system: "nds", slug: "legend-of-zelda-the-phantom-hourglass-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%20DS/Named_Boxarts/Legend%20of%20Zelda%2C%20The%20-%20Phantom%20Hourglass%20(USA)%20(En%2CFr%2CEs).png" },
+  { title: "Super Mario 64 DS", console: "nds", core: "nds", system: "nds", slug: "super-mario-64-ds-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%20DS/Named_Boxarts/Super%20Mario%2064%20DS%20(USA).png" },
+  { title: "Animal Crossing: Wild World", console: "nds", core: "nds", system: "nds", slug: "animal-crossing-wild-world-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%20DS/Named_Boxarts/Animal%20Crossing%20-%20Wild%20World%20(USA)%20(Rev%201).png" },
+  { title: "Kirby: Canvas Curse", console: "nds", core: "nds", system: "nds", slug: "kirby-canvas-curse-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%20DS/Named_Boxarts/Kirby%20-%20Canvas%20Curse%20(USA).png" },
+  { title: "Castlevania: Dawn of Sorrow", console: "nds", core: "nds", system: "nds", slug: "castlevania-dawn-of-sorrow-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%20DS/Named_Boxarts/Castlevania%20-%20Dawn%20of%20Sorrow%20(USA).png" },
+  { title: "Advance Wars: Dual Strike", console: "nds", core: "nds", system: "nds", slug: "advance-wars-dual-strike-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%20DS/Named_Boxarts/Advance%20Wars%20-%20Dual%20Strike%20(USA).png" },
+  { title: "Phoenix Wright: Ace Attorney", console: "nds", core: "nds", system: "nds", slug: "phoenix-wright-ace-attorney-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%20DS/Named_Boxarts/Phoenix%20Wright%20-%20Ace%20Attorney%20(USA).png" },
+  { title: "Chrono Trigger", console: "nds", core: "nds", system: "nds", slug: "chrono-trigger-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%20DS/Named_Boxarts/Chrono%20Trigger%20(USA).png" },
+  { title: "Mario & Luigi: Partners in Time", console: "nds", core: "nds", system: "nds", slug: "mario-and-luigi-partners-in-time-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%20DS/Named_Boxarts/Mario%20%26%20Luigi%20-%20Partners%20in%20Time%20(USA).png" },
+  { title: "Metroid Prime Hunters", console: "nds", core: "nds", system: "nds", slug: "metroid-prime-hunters-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%20DS/Named_Boxarts/Metroid%20Prime%20Hunters%20(USA).png" },
+  { title: "Tetris DS", console: "nds", core: "nds", system: "nds", slug: "tetris-ds-usa-", img: "https://thumbnails.libretro.com/Nintendo%20-%20Nintendo%20DS/Named_Boxarts/Tetris%20DS%20(USA).png" },
+];
+
+// Console display names & order
+const CONSOLE_NAMES = {
+  nes: "NES", snes: "SNES", n64: "N64",
+  gb: "Game Boy", gbc: "Game Boy Color", gba: "GBA",
+  genesis: "Genesis", sms: "Master System", saturn: "Saturn",
+  ps1: "PS1", psp: "PSP",
+  atari2600: "Atari 2600", neogeo: "Neo Geo",
+  arcade: "Arcade", nds: "NDS"
+};
+
+const CONSOLE_ORDER = ["nes","snes","n64","gb","gbc","gba","genesis","sms","saturn","ps1","psp","atari2600","neogeo","arcade","nds"];
+
+let activeConsole = 'all';
+let searchQuery = '';
+
+function createGameCard(game) {
+  const card = document.createElement('div');
+  card.className = 'game-card';
+  card.innerHTML = `
+    <img class="game-card-img" src="${game.img}" alt="${game.title}" loading="lazy"
+         onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22300%22 viewBox=%220 0 300 300%22><rect fill=%22%231a1a2e%22 width=%22300%22 height=%22300%22/><text x=%22150%22 y=%22140%22 text-anchor=%22middle%22 fill=%22%23555%22 font-size=%2216%22 font-family=%22Arial%22>${encodeURIComponent(game.title)}</text><text x=%22150%22 y=%22170%22 text-anchor=%22middle%22 fill=%22%230066ff%22 font-size=%2213%22 font-family=%22Arial%22>${CONSOLE_NAMES[game.console] || game.console}</text></svg>'">
+    <div class="game-card-play">
+      <svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>
+    </div>
+    <div class="game-card-info">
+      <div class="game-card-title" title="${game.title}">${game.title}</div>
+      <span class="game-card-console badge-${game.console}">${CONSOLE_NAMES[game.console] || game.console}</span>
+    </div>
+  `;
+  card.addEventListener('click', () => {
+    if (game.slug && game.system) {
+      window.location.href = `play.html?type=retro&system=${game.system}&slug=${encodeURIComponent(game.slug)}&title=${encodeURIComponent(game.title)}&console=${game.console}&core=${game.core}`;
+    } else {
+      window.location.href = `play.html?core=${game.core}&title=${encodeURIComponent(game.title)}&console=${game.console}`;
+    }
+  });
+  return card;
+}
+
+function renderGames() {
+  const container = document.getElementById('gamesContainer');
+  container.innerHTML = '';
+
+  let filtered = GAMES;
+
+  if (activeConsole !== 'all') {
+    filtered = filtered.filter(g => g.console === activeConsole);
+  }
+
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase();
+    filtered = filtered.filter(g => g.title.toLowerCase().includes(q));
+  }
+
+  // Update count
+  document.getElementById('gamesCount').textContent = `${filtered.length} game${filtered.length !== 1 ? 's' : ''}`;
+
+  if (filtered.length === 0) {
+    container.innerHTML = '<div class="no-games"><h3>No games found</h3><p>Try a different search or console filter.</p></div>';
+    return;
+  }
+
+  if (activeConsole === 'all' && !searchQuery) {
+    // Group by console
+    CONSOLE_ORDER.forEach(consoleName => {
+      const consoleGames = filtered.filter(g => g.console === consoleName);
+      if (consoleGames.length === 0) return;
+
+      const section = document.createElement('div');
+      section.innerHTML = `<div class="games-section-title">${CONSOLE_NAMES[consoleName]} <span class="count-badge">${consoleGames.length}</span></div>`;
+      const grid = document.createElement('div');
+      grid.className = 'games-grid';
+      consoleGames.forEach(game => grid.appendChild(createGameCard(game)));
+      section.appendChild(grid);
+      container.appendChild(section);
+    });
+  } else {
+    const grid = document.createElement('div');
+    grid.className = 'games-grid';
+    filtered.forEach(game => grid.appendChild(createGameCard(game)));
+    container.appendChild(grid);
+  }
+}
+
+// Console filter pills
+document.getElementById('consoleFilters').addEventListener('click', (e) => {
+  const pill = e.target.closest('.console-pill');
+  if (!pill) return;
+  document.querySelectorAll('.console-pill').forEach(p => p.classList.remove('active'));
+  pill.classList.add('active');
+  activeConsole = pill.dataset.console;
+  renderGames();
+});
+
+// Search
+document.getElementById('gameSearch').addEventListener('input', (e) => {
+  searchQuery = e.target.value.trim();
+  renderGames();
+});
+
+// Init
+renderGames();
+</script>
+</body>
+</html>
